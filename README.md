@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SEOPTIMUS
 
-## Getting Started
+Сервис генерации текстов и изображений нейросетью: публичный сайт с SEO-страницами, личный кабинет и админка в одном приложении.
 
-First, run the development server:
+Стек: Next.js 15 (App Router), TypeScript, Tailwind, PostgreSQL + Drizzle ORM, OpenAI API, CloudPayments.
+
+## Запуск
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local   # заполнить значения
+npm install
+npx drizzle-kit push         # создать таблицы (нужен DATABASE_URL в окружении)
+npm run db:seed              # тарифы, модели, генераторы
+npm run dev                  # или npm run build && npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Без `OPENAI_API_KEY` приложение работает в демо-режиме: вместо нейросети отвечает заглушка, всё остальное (лимиты, кредиты, история) работает по-настоящему. Без `SMTP_URL` код входа печатается в лог сервера.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Администраторы задаются в `ADMIN_EMAILS`: при входе с таким email пользователь получает роль admin.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Что где
 
-## Learn More
+| Раздел | Адрес | Код |
+| --- | --- | --- |
+| Главная с бесплатной генерацией | `/` | `src/app/(public)/(home)` |
+| SEO-страницы генераторов (старые URL) | `/seo-generator`, `/articles-generator`, `/text-rewriter`, `/text-corrector`, `/smm-generator` | `src/app/(public)/[slug]` |
+| Тарифы | `/tarification` | `src/app/(public)/tarification` |
+| Кабинет: чат, генераторы, картинки, история, оплата | `/app/...` | `src/app/app` |
+| Админка: сводка, пользователи, модели, генераторы, тарифы | `/admin/...` | `src/app/admin` |
+| AI-шлюз (провайдеры) | | `src/lib/ai/gateway.ts` |
+| Кредиты и списания | | `src/lib/billing.ts` |
+| Гостевой лимит | | `src/lib/guest.ts` |
+| Вебхуки CloudPayments | `/api/cloudpayments/{check,pay,fail,recurrent}` | `src/app/api/cloudpayments` |
 
-To learn more about Next.js, take a look at the following resources:
+## Как устроена оплата
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Валюта сервиса — кредиты. Текстовая модель списывает `creditPrice` за 1000 токенов (не меньше `minCredits`), картинка — `creditPrice` за штуку. Цены задаются в админке.
+- Тариф начисляет `monthlyCredits` при каждой оплате и открывает платные модели до `plan_until`.
+- Виджет CloudPayments передаёт `accountId = email` и `data.plan`. Старые подписки с Tilda определяются по описанию платежа («Оптимус», «Оптимус PRO», «Максимус», «Бизнес») — см. `detectPlan` в `src/lib/cloudpayments.ts`.
+- Уведомления проверяются по подписи HMAC (`CLOUDPAYMENTS_API_SECRET`).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Что ещё не сделано
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Claude, Perplexity и другие провайдеры (добавляются в `gateway.ts` и записью модели в админке)
+- 15 страниц `/neiroset-dlya-...`, блог `/statyi`, юридические страницы
+- Хранение картинок в S3 (сейчас на диске сервера)
+- Капча и защита гостевого лимита от ботов, ограничение частоты запроса кода входа
+- Импорт пользователей из Tilda Members
+- Проверка уникальности (text.ru), команды, API
