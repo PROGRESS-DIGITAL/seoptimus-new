@@ -11,11 +11,11 @@ const SYSTEM_BASE =
 
 const plans: (typeof schema.plans.$inferInsert)[] = [
   { slug: "start", name: "Старт", priceRub: 490, monthlyCredits: 1000, sort: 1,
-    description: "Быстрые модели без ограничений по сути, флагманские и картинки из пакета кредитов" },
+    description: "Для личных задач: тексты, чат и немного картинок" },
   { slug: "pro", name: "Про", priceRub: 1490, monthlyCredits: 4000, sort: 2,
-    description: "Все модели, в 4 раза больше кредитов, приоритетная очередь" },
+    description: "Для тех, кто пишет каждый день: копирайтеры, SEO, маркетологи" },
   { slug: "business", name: "Бизнес", priceRub: 4990, monthlyCredits: 15000, sort: 3,
-    description: "Для команд: общий баланс, оплата по счёту" },
+    description: "Для отделов и агентств с большим объёмом контента" },
 ];
 
 const models: (typeof schema.models.$inferInsert)[] = [

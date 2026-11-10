@@ -1,6 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import ImageStudio from "@/components/ImageStudio";
+import PageHead from "@/components/PageHead";
 import { requireUser } from "@/lib/auth";
 import { modelOptions } from "@/lib/generators";
 
@@ -13,11 +14,9 @@ export default async function Images() {
     .orderBy(desc(schema.generations.id))
     .limit(24);
   return (
-    <div className="mx-auto max-w-5xl p-6">
-      <h1 className="text-2xl font-bold">Изображения</h1>
-      <div className="mt-5">
-        <ImageStudio models={await modelOptions("image", user)} recent={recent.map((r) => r.output)} />
-      </div>
+    <div className="mx-auto max-w-5xl p-6 sm:p-10">
+      <PageHead title="Изображения" hint="Опишите картинку словами, остальное сделает нейросеть" />
+      <ImageStudio models={await modelOptions("image", user)} recent={recent.map((r) => r.output)} />
     </div>
   );
 }

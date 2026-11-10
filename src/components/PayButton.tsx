@@ -17,6 +17,7 @@ export default function PayButton({
   data,
   recurrent,
   label,
+  primary = true,
 }: {
   publicId: string;
   email: string;
@@ -25,15 +26,16 @@ export default function PayButton({
   data: Record<string, unknown>;
   recurrent?: boolean;
   label: string;
+  primary?: boolean;
 }) {
   const [msg, setMsg] = useState("");
   if (!publicId)
-    return <div className="text-xs text-slate-500">Оплата не настроена (нет CLOUDPAYMENTS_PUBLIC_ID)</div>;
+    return <div className="text-xs text-muted">Оплата ещё не подключена</div>;
   return (
     <>
       <Script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js" strategy="lazyOnload" />
       <button
-        className="w-full rounded-lg bg-indigo-600 py-2 font-semibold text-white hover:bg-indigo-700"
+        className={primary ? "btn w-full" : "btn-ghost w-full"}
         onClick={() => {
           if (!window.cp) return setMsg("Платёжный виджет ещё загружается, попробуйте через секунду");
           new window.cp.CloudPayments().pay(
@@ -63,7 +65,7 @@ export default function PayButton({
       >
         {label}
       </button>
-      {msg && <div className="mt-2 text-xs text-slate-600">{msg}</div>}
+      {msg && <div className="mt-2 text-xs text-muted">{msg}</div>}
     </>
   );
 }

@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
+import { LogOut, Plus } from "lucide-react";
 import { db, schema } from "@/db";
+import { BottomNav, SideNav } from "@/components/AppNav";
+import Logo from "@/components/Logo";
 import { hasActivePlan, requireUser } from "@/lib/auth";
 import { isDemoMode } from "@/lib/ai/gateway";
 
@@ -14,56 +17,68 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .where(eq(schema.conversations.userId, user.id))
     .orderBy(desc(schema.conversations.updatedAt))
     .limit(30);
-  const link = "block rounded-md px-3 py-1.5 text-sm hover:bg-slate-200";
+  const active = hasActivePlan(user);
 
   return (
-    <div className="flex h-screen">
-      <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200 bg-slate-50 md:flex">
-        <Link href="/" className="px-4 py-3 text-lg font-extrabold text-indigo-700">SEOPTIMUS</Link>
-        <nav className="space-y-0.5 px-2">
-          <Link href="/app/chat" className={link}>💬 Новый чат</Link>
-          <Link href="/app/generators" className={link}>✍️ Генераторы</Link>
-          <Link href="/app/images" className={link}>🖼 Изображения</Link>
-          <Link href="/app/history" className={link}>🗂 История</Link>
-          <Link href="/app/billing" className={link}>💳 Тариф и оплата</Link>
-          {user.role === "admin" && <Link href="/admin" className={link}>⚙️ Админка</Link>}
-        </nav>
-        <div className="mt-4 flex-1 overflow-y-auto px-2">
-          <div className="px-3 pb-1 text-xs uppercase text-slate-400">Чаты</div>
+    <div className="flex h-dvh bg-bg">
+      <aside className="hidden w-[272px] shrink-0 flex-col border-r border-line bg-surface md:flex">
+        <div className="px-5 py-4">
+          <Logo href="/app/chat" />
+        </div>
+        <div className="px-3 pb-3">
+          <Link href="/app/chat" className="btn btn-sm w-full">
+            <Plus className="h-4 w-4" /> Новый чат
+          </Link>
+        </div>
+        <SideNav admin={user.role === "admin"} />
+        <div className="mt-5 min-h-0 flex-1 overflow-y-auto px-3">
+          {chats.length > 0 && <div className="px-3 pb-1.5 text-[11px] font-medium uppercase tracking-widest text-muted/60">Недавние чаты</div>}
           {chats.map((c) => (
-            <Link key={c.id} href={`/app/chat?c=${c.id}`} className={link + " truncate text-slate-700"}>
+            <Link
+              key={c.id}
+              href={`/app/chat?c=${c.id}`}
+              className="block truncate rounded-lg px-3 py-1.5 text-sm text-muted transition hover:bg-white/5 hover:text-fg"
+            >
               {c.title}
             </Link>
           ))}
         </div>
-        <div className="border-t border-slate-200 p-4 text-sm">
-          <div className="truncate text-slate-600">{user.email}</div>
-          <div className="mt-1 font-semibold">{user.credits.toLocaleString("ru-RU")} кредитов</div>
-          <div className="text-xs text-slate-500">
-            {hasActivePlan(user)
-              ? `Тариф до ${user.planUntil!.toLocaleDateString("ru-RU")}`
-              : "Бесплатный доступ"}
+        <div className="m-3 rounded-2xl border border-line bg-white/[0.03] p-4">
+          <div className="flex items-baseline justify-between">
+            <span className="display text-2xl">{user.credits.toLocaleString("ru-RU")}</span>
+            <span className="text-xs text-muted">кредитов</span>
           </div>
-          <form action="/api/auth/logout" method="post" className="mt-2">
-            <button className="text-xs text-slate-500 hover:underline">Выйти</button>
-          </form>
+          <div className="mt-1 text-xs text-muted">
+            {active ? `Тариф до ${user.planUntil!.toLocaleDateString("ru-RU")}` : "Бесплатный доступ"}
+          </div>
+          <Link href="/app/billing" className="btn-ghost btn-sm mt-3 w-full">
+            {active ? "Пополнить" : "Выбрать тариф"}
+          </Link>
+          <div className="mt-3 flex items-center justify-between gap-2 border-t border-line pt-3 text-xs text-muted">
+            <span className="truncate">{user.email}</span>
+            <form action="/api/auth/logout" method="post">
+              <button title="Выйти" className="cursor-pointer hover:text-fg">
+                <LogOut className="h-4 w-4" />
+              </button>
+            </form>
+          </div>
         </div>
       </aside>
+
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-2 text-sm md:hidden">
-          <Link href="/app/chat" className="font-bold text-indigo-700">SEOPTIMUS</Link>
-          <span>{user.credits} кр.</span>
-          <span className="flex gap-3">
-            <Link href="/app/generators">Генераторы</Link>
-            <Link href="/app/images">Картинки</Link>
-          </span>
+        <div className="flex items-center justify-between border-b border-line px-4 py-2.5 md:hidden">
+          <Logo href="/app/chat" />
+          <Link href="/app/billing" className="chip">
+            <span className="font-semibold text-fg">{user.credits}</span> кр.
+          </Link>
         </div>
         {isDemoMode() && (
-          <div className="bg-amber-100 px-4 py-1.5 text-center text-xs text-amber-900">
-            Демо-режим: ключ OpenAI не задан, ответы — заглушки
+          <div className="border-b border-line bg-accent/10 px-4 py-1.5 text-center text-xs text-accent">
+            Демо-режим: нейросеть не подключена, ответы показаны для примера
           </div>
         )}
         <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
+        <BottomNav />
       </div>
     </div>
   );

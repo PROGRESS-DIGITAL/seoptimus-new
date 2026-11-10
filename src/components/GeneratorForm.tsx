@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Check, Copy, Sparkles } from "lucide-react";
 import type { GeneratorField } from "@/db/schema";
 import { readTextStream } from "@/lib/stream-client";
 
@@ -53,45 +54,41 @@ export default function GeneratorForm({
     }
   }
 
-  const input = "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100";
+  const set = (name: string, v: string) => setValues({ ...values, [name]: v });
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-5">
       <form onSubmit={submit} className="grid gap-4">
         {fields.map((f) => (
-          <label key={f.name} className="grid gap-1.5 text-sm font-medium text-slate-700">
+          <label key={f.name} className="label">
             {f.label}
             {f.type === "textarea" ? (
               <textarea
-                className={input + " min-h-28"}
+                className="input min-h-28 resize-y"
                 placeholder={f.placeholder}
                 required={f.required}
                 value={values[f.name]}
-                onChange={(e) => setValues({ ...values, [f.name]: e.target.value })}
+                onChange={(e) => set(f.name, e.target.value)}
               />
             ) : f.type === "select" ? (
-              <select
-                className={input}
-                value={values[f.name]}
-                onChange={(e) => setValues({ ...values, [f.name]: e.target.value })}
-              >
+              <select className="input" value={values[f.name]} onChange={(e) => set(f.name, e.target.value)}>
                 {f.options?.map((o) => <option key={o}>{o}</option>)}
               </select>
             ) : (
               <input
-                className={input}
+                className="input"
                 placeholder={f.placeholder}
                 required={f.required}
                 value={values[f.name]}
-                onChange={(e) => setValues({ ...values, [f.name]: e.target.value })}
+                onChange={(e) => set(f.name, e.target.value)}
               />
             )}
           </label>
         ))}
         {models && models.length > 1 && (
-          <label className="grid gap-1.5 text-sm font-medium text-slate-700">
+          <label className="label">
             Модель
-            <select className={input} value={model} onChange={(e) => setModel(e.target.value)}>
+            <select className="input" value={model} onChange={(e) => setModel(e.target.value)}>
               {models.map((m) => (
                 <option key={m.slug} value={m.slug} disabled={m.locked}>
                   {m.title}
@@ -101,41 +98,58 @@ export default function GeneratorForm({
             </select>
           </label>
         )}
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            disabled={busy || (guest && left <= 0)}
-            className="rounded-lg bg-indigo-600 px-5 py-2.5 font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
-          >
-            {busy ? "Генерирую…" : "Сгенерировать"}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <button disabled={busy || (guest && left <= 0)} className="btn">
+            <Sparkles className={"h-4 w-4 " + (busy ? "animate-spin" : "")} />
+            {busy ? "Пишу…" : "Сгенерировать"}
           </button>
           {guest && (
-            <span className="text-sm text-slate-500">
-              {left > 0 ? `Бесплатно без регистрации: осталось ${left} сегодня` : "Лимит на сегодня исчерпан."}{" "}
-              <Link href="/login" className="text-indigo-600 underline">
-                Регистрация даёт 50 кредитов
-              </Link>
+            <span className="text-sm text-muted">
+              {left > 0 ? (
+                <>Бесплатно, без регистрации · осталось {left} сегодня</>
+              ) : (
+                <>
+                  Лимит на сегодня исчерпан.{" "}
+                  <Link href="/login" className="text-accent underline-offset-4 hover:underline">
+                    Получить 50 кредитов за регистрацию
+                  </Link>
+                </>
+              )}
             </span>
           )}
         </div>
       </form>
-      {error && <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</div>}
+
+      {error && (
+        <div className="rounded-xl border border-danger/30 bg-danger/10 p-3 text-sm text-danger">{error}</div>
+      )}
+
+      {busy && !output && (
+        <div className="grid gap-2.5 rounded-2xl border border-line bg-black/30 p-5">
+          <div className="shimmer h-3.5 w-11/12 rounded-full" />
+          <div className="shimmer h-3.5 w-full rounded-full" />
+          <div className="shimmer h-3.5 w-8/12 rounded-full" />
+        </div>
+      )}
+
       {output && (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-          <div className="mb-2 flex justify-between text-xs text-slate-500">
-            <span>Результат · {output.length} знаков</span>
+        <div className="animate-rise rounded-2xl border border-line bg-black/30 p-5">
+          <div className="mb-3 flex items-center justify-between text-xs text-muted">
+            <span>Результат · {output.length.toLocaleString("ru-RU")} знаков</span>
             <button
               type="button"
-              className="text-indigo-600 hover:underline"
+              className="chip chip-btn !py-0.5 !text-xs"
               onClick={() => {
                 navigator.clipboard.writeText(output);
                 setCopied(true);
                 setTimeout(() => setCopied(false), 1500);
               }}
             >
+              {copied ? <Check className="h-3.5 w-3.5 text-accent" /> : <Copy className="h-3.5 w-3.5" />}
               {copied ? "Скопировано" : "Копировать"}
             </button>
           </div>
-          <div className="whitespace-pre-wrap text-slate-900">{output}</div>
+          <div className={"whitespace-pre-wrap leading-relaxed " + (busy ? "caret" : "")}>{output}</div>
         </div>
       )}
     </div>

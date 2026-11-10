@@ -1,5 +1,205 @@
 @import "tailwindcss";
 
+/*
+  Фирменный стиль SEOPTIMUS: тёмная основа, кислотно-лаймовый акцент, фиолетово-розовое свечение.
+  Свой узнаваемый вид, не похожий на чужие AI-сервисы (см. README, раздел «Бренд и SEO»).
+*/
 @theme {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "Onest Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Unbounded Variable", "Onest Variable", ui-sans-serif, sans-serif;
+
+  --color-bg: #07070b;
+  --color-surface: #0f0f17;
+  --color-surface-2: #181824;
+  --color-line: #ffffff14;
+  --color-line-2: #ffffff29;
+  --color-fg: #f5f5f8;
+  --color-muted: #9d9db3;
+  --color-accent: #c6ff3d;
+  --color-accent-ink: #0c1200;
+  --color-violet: #8b5cff;
+  --color-pink: #ff4fa3;
+  --color-danger: #ff6b6b;
+
+  --animate-aurora: aurora 16s ease-in-out infinite alternate;
+  --animate-aurora-slow: aurora 26s ease-in-out infinite alternate-reverse;
+  --animate-marquee: marquee 45s linear infinite;
+  --animate-rise: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-caret: caret 1s steps(1) infinite;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-spin-slow: spin 14s linear infinite;
+
+  @keyframes aurora {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(6%, -8%, 0) scale(1.15); }
+    100% { transform: translate3d(-8%, 6%, 0) scale(0.95); }
+  }
+  @keyframes marquee {
+    to { transform: translateX(-50%); }
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes caret {
+    50% { opacity: 0; }
+  }
+  @keyframes shimmer {
+    to { background-position: -200% 0; }
+  }
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+}
+
+select option {
+  background: var(--color-surface-2);
+  color: var(--color-fg);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #ffffff22 transparent;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 font-semibold text-accent-ink transition duration-200;
+    box-shadow: 0 0 0 0 transparent;
+  }
+  .btn:hover:not(:disabled) {
+    box-shadow: 0 0 36px -6px var(--color-accent);
+    transform: translateY(-1px);
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+  }
+  .btn:disabled {
+    @apply cursor-not-allowed opacity-40;
+  }
+  .btn-ghost {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-line-2 px-5 py-2.5 font-medium text-fg transition duration-200 hover:border-white/40 hover:bg-white/5;
+  }
+  .btn-sm {
+    @apply px-3.5 py-1.5 text-sm;
+  }
+
+  .card {
+    @apply rounded-2xl border border-line bg-surface;
+  }
+  .card-hover {
+    @apply transition duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:bg-surface-2;
+  }
+  .glass {
+    @apply rounded-3xl border border-line-2 bg-white/[0.04] backdrop-blur-xl;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-line-2 bg-white/[0.04] px-3.5 py-2.5 text-fg outline-none transition duration-200 placeholder:text-muted/60 focus:border-accent/70 focus:bg-white/[0.06];
+  }
+  .input:focus {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 12%, transparent);
+  }
+  .input-sm {
+    @apply rounded-lg border border-line-2 bg-white/[0.04] px-2 py-1 text-sm text-fg outline-none focus:border-accent/70;
+  }
+  .label {
+    @apply grid gap-1.5 text-sm font-medium text-muted;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line-2 bg-white/5 px-3 py-1 text-sm text-muted;
+  }
+  .chip-btn {
+    @apply cursor-pointer transition hover:border-accent/50 hover:text-fg;
+  }
+
+  .display {
+    @apply font-display font-semibold tracking-tight;
+  }
+  .gradient-text {
+    background: linear-gradient(100deg, var(--color-accent) 0%, #7dffb0 45%, #5ce1ff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Светящаяся градиентная рамка */
+  .glow {
+    position: relative;
+    isolation: isolate;
+  }
+  .glow::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--color-accent), var(--color-violet) 45%, var(--color-pink));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .glow::after {
+    content: "";
+    position: absolute;
+    inset: 8%;
+    border-radius: inherit;
+    background: linear-gradient(135deg, var(--color-accent), var(--color-violet) 45%, var(--color-pink));
+    filter: blur(60px);
+    opacity: 0.28;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .caret::after {
+    content: "";
+    display: inline-block;
+    width: 0.55em;
+    height: 1.05em;
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    background: var(--color-accent);
+    border-radius: 2px;
+    animation: var(--animate-caret);
+  }
+
+  .shimmer {
+    background: linear-gradient(90deg, #ffffff0d 25%, #ffffff24 50%, #ffffff0d 75%);
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(to right, #ffffff0a 1px, transparent 1px),
+      linear-gradient(to bottom, #ffffff0a 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 30%, transparent 75%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

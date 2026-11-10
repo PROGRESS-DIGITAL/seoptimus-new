@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowRight } from "lucide-react";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -29,7 +30,6 @@ export default function LoginForm() {
     }
   }
 
-  const input = "w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-indigo-500";
   return (
     <form
       className="grid gap-4"
@@ -44,29 +44,40 @@ export default function LoginForm() {
       }}
     >
       {step === "email" ? (
-        <label className="grid gap-1.5 text-sm font-medium">
+        <label className="label">
           Email
-          <input className={input} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input
+            className="input"
+            type="email"
+            required
+            autoFocus
+            placeholder="you@example.ru"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </label>
       ) : (
-        <label className="grid gap-1.5 text-sm font-medium">
+        <label className="label">
           Код из письма на {email}
           <input
-            className={input + " tracking-widest"}
+            className="input text-center font-display text-2xl tracking-[0.4em]"
             inputMode="numeric"
+            maxLength={6}
             autoFocus
             required
+            placeholder="······"
             value={code}
             onChange={(e) => setCode(e.target.value)}
           />
         </label>
       )}
-      {error && <div className="text-sm text-red-600">{error}</div>}
-      <button disabled={busy} className="rounded-lg bg-indigo-600 py-2.5 font-semibold text-white disabled:opacity-50">
+      {error && <div className="text-sm text-danger">{error}</div>}
+      <button disabled={busy} className="btn w-full">
         {step === "email" ? "Получить код" : "Войти"}
+        <ArrowRight className="h-4 w-4" />
       </button>
       {step === "code" && (
-        <button type="button" className="text-sm text-slate-500" onClick={() => setStep("email")}>
+        <button type="button" className="text-sm text-muted hover:text-fg" onClick={() => setStep("email")}>
           Изменить email
         </button>
       )}

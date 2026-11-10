@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { db, schema } from "@/db";
 import { saveGenerator } from "../../actions";
 
-const inp = "w-full rounded border border-slate-300 px-2 py-1.5 text-sm";
+const inp = "input-sm w-full !py-1.5";
 const lbl = "grid gap-1 text-sm font-medium";
 
 const SAMPLE_FIELDS = JSON.stringify(
@@ -20,8 +20,8 @@ export default async function EditGenerator({ params }: { params: Promise<{ slug
   const models = await db.select().from(schema.models).where(eq(schema.models.kind, "text"));
 
   return (
-    <form action={saveGenerator} className="grid gap-4 rounded-xl border border-slate-200 bg-white p-5">
-      <h1 className="text-xl font-bold">{isNew ? "Новый генератор" : g.title}</h1>
+    <form action={saveGenerator} className="grid gap-4 card p-5">
+      <h1 className="display text-xl">{isNew ? "Новый генератор" : g.title}</h1>
       <div className="grid gap-4 md:grid-cols-2">
         <label className={lbl}>slug (латиница)<input name="slug" defaultValue={g?.slug} readOnly={!isNew} required className={inp} /></label>
         <label className={lbl}>Название<input name="title" defaultValue={g?.title} required className={inp} /></label>
@@ -51,7 +51,7 @@ export default async function EditGenerator({ params }: { params: Promise<{ slug
         <label className="flex gap-2"><input type="checkbox" name="guestAllowed" defaultChecked={g?.guestAllowed ?? true} /> Доступен гостям без регистрации</label>
         <label className="flex gap-2"><input type="checkbox" name="enabled" defaultChecked={g?.enabled ?? true} /> Включён</label>
       </div>
-      <div><button className="rounded bg-indigo-600 px-5 py-2 font-semibold text-white">Сохранить</button></div>
+      <div><button className="btn">Сохранить</button></div>
     </form>
   );
 }

@@ -81,7 +81,7 @@ const demoProvider: Provider = {
   },
   async generateImage(_model, prompt) {
     const safe = prompt.replace(/[<>&"]/g, "").slice(0, 60);
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024"><rect width="100%" height="100%" fill="#eef2ff"/><text x="50%" y="46%" font-family="sans-serif" font-size="40" text-anchor="middle" fill="#4338ca">Демо-изображение</text><text x="50%" y="54%" font-family="sans-serif" font-size="26" text-anchor="middle" fill="#6366f1">${safe}</text></svg>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024"><defs><radialGradient id="a" cx="30%" cy="25%" r="80%"><stop offset="0" stop-color="#8b5cff"/><stop offset="0.55" stop-color="#2a1a4a"/><stop offset="1" stop-color="#0f0f17"/></radialGradient><radialGradient id="b" cx="80%" cy="85%" r="50%"><stop offset="0" stop-color="#c6ff3d" stop-opacity="0.55"/><stop offset="1" stop-color="#c6ff3d" stop-opacity="0"/></radialGradient></defs><rect width="100%" height="100%" fill="url(#a)"/><rect width="100%" height="100%" fill="url(#b)"/><text x="50%" y="47%" font-family="sans-serif" font-size="44" font-weight="700" text-anchor="middle" fill="#f5f5f8">Демо-изображение</text><text x="50%" y="54%" font-family="sans-serif" font-size="26" text-anchor="middle" fill="#c9c9d6">${safe}</text></svg>`;
     return Buffer.from(svg);
   },
 };

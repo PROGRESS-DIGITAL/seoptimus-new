@@ -34,21 +34,21 @@ export default async function AdminHome() {
     <div className="space-y-8">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map(([label, value]) => (
-          <div key={label} className="rounded-xl border border-slate-200 bg-white p-4">
-            <div className="text-sm text-slate-500">{label}</div>
-            <div className="mt-1 text-2xl font-bold">{value}</div>
+          <div key={label} className="card p-5">
+            <div className="text-sm text-muted">{label}</div>
+            <div className="display mt-2 text-3xl">{value}</div>
           </div>
         ))}
       </div>
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <h2 className="font-semibold">Генерации по моделям за 30 дней</h2>
+      <div className="card p-4">
+        <h2 className="display text-lg">Генерации по моделям за 30 дней</h2>
         <table className="mt-3 w-full text-sm">
-          <thead className="text-left text-slate-500">
+          <thead className="text-left text-muted">
             <tr><th>Модель</th><th>Запросов</th><th>Токенов</th><th>Списано кредитов</th></tr>
           </thead>
           <tbody>
             {byModel.map((r) => (
-              <tr key={r.model} className="border-t border-slate-100">
+              <tr key={r.model} className="border-t border-line">
                 <td className="py-1.5">{r.model}</td><td>{r.n}</td><td>{r.tokens}</td><td>{r.credits}</td>
               </tr>
             ))}
