@@ -19,11 +19,11 @@ const plans: (typeof schema.plans.$inferInsert)[] = [
 ];
 
 const models: (typeof schema.models.$inferInsert)[] = [
-  { slug: "gpt-fast", title: "GPT быстрая", providerModel: "gpt-5-mini", kind: "text",
+  { slug: "gpt-fast", title: "Быстрая", providerModel: "gpt-5-mini", kind: "text",
     creditPrice: 1, minCredits: 1, freeAccess: true, isDefault: true, sort: 1 },
-  { slug: "gpt-flagship", title: "GPT флагман", providerModel: "gpt-5", kind: "text",
+  { slug: "gpt-flagship", title: "Умная", providerModel: "gpt-5", kind: "text",
     creditPrice: 5, minCredits: 3, freeAccess: false, sort: 2 },
-  { slug: "gpt-image", title: "GPT Image", providerModel: "gpt-image-1", kind: "image",
+  { slug: "gpt-image", title: "Изображения", providerModel: "gpt-image-1", kind: "image",
     creditPrice: 20, minCredits: 20, freeAccess: false, sort: 10 },
 ];
 

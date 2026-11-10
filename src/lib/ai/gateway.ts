@@ -70,9 +70,9 @@ const demoProvider: Provider = {
   async streamChat(model, messages, onDelta) {
     const last = messages.filter((m) => m.role === "user").at(-1)?.content ?? "";
     const text =
-      `Демо-режим (ключ OpenAI не задан), модель «${model.title}».\n\n` +
+      `Демо-режим (нейросеть не подключена), модель «${model.title}».\n\n` +
       `Здесь будет ответ нейросети на запрос:\n«${last.slice(0, 300)}${last.length > 300 ? "…" : ""}»\n\n` +
-      "Чтобы включить настоящую генерацию, укажите OPENAI_API_KEY в настройках сервера.";
+      "Настоящая генерация включится после подключения ключа API на сервере.";
     for (const word of text.split(/(\s+)/)) {
       onDelta(word);
       await new Promise((r) => setTimeout(r, 12));
