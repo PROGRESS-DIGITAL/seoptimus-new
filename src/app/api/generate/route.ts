@@ -7,6 +7,8 @@ import { consumeGuest } from "@/lib/guest";
 import { errMessage, jsonError, textStream } from "@/lib/http";
 import { resolveModel } from "@/lib/models";
 import { renderTemplate, validateInput } from "@/lib/prompt";
+import { META_SEP } from "@/lib/stream-meta";
+import { suggestFollowUps } from "@/lib/suggest";
 
 export const runtime = "nodejs";
 
@@ -46,7 +48,7 @@ export async function POST(req: Request) {
           { maxTokens: user ? 8000 : 2000, signal },
         );
         const credits = user ? await chargeUpTo(user.id, textCost(model, result.tokens), "generate", gen.slug) : 0;
-        await db.insert(schema.generations).values({
+        const [row] = await db.insert(schema.generations).values({
           userId: user?.id ?? null,
           guestKey,
           kind: "text",
@@ -56,7 +58,12 @@ export async function POST(req: Request) {
           output: result.text,
           tokens: result.tokens,
           credits,
-        });
+        }).returning({ id: schema.generations.id });
+        if (result.text.trim()) {
+          write(META_SEP); // клиент сразу покажет, что подбираются варианты
+          const suggestions = await suggestFollowUps(prompt, result.text);
+          write(JSON.stringify({ suggestions, generationId: user ? row.id : undefined }));
+        }
       },
       req.signal,
       { "X-Model": model.slug },

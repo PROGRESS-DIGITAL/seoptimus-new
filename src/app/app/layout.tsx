@@ -2,12 +2,18 @@ import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { LogOut, Plus } from "lucide-react";
 import { db, schema } from "@/db";
+import { Suspense } from "react";
+import type { Metadata } from "next";
 import { BottomNav, SideNav } from "@/components/AppNav";
+import InstallHint from "@/components/InstallHint";
+import MobileChats from "@/components/MobileChats";
 import Logo from "@/components/Logo";
 import { hasActivePlan, requireUser } from "@/lib/auth";
 import { isDemoMode } from "@/lib/ai/gateway";
 
 export const dynamic = "force-dynamic";
+// Кабинет закрыт от поисковиков
+export const metadata: Metadata = { title: "Кабинет — SEOPTIMUS", robots: { index: false, follow: false } };
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
@@ -20,7 +26,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const active = hasActivePlan(user);
 
   return (
-    <div className="flex h-dvh bg-bg">
+    <div className="app-shell flex h-dvh bg-bg">
       <aside className="hidden w-[272px] shrink-0 flex-col border-r border-line bg-surface md:flex">
         <div className="px-5 py-4">
           <Logo href="/app/chat" />
@@ -66,12 +72,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex items-center justify-between border-b border-line px-4 py-2.5 md:hidden">
-          <Logo href="/app/chat" />
-          <Link href="/app/billing" className="chip">
-            <span className="font-semibold text-fg">{user.credits}</span> кр.
-          </Link>
+        <div className="pt-safe border-b border-line bg-bg/90 backdrop-blur-xl md:hidden">
+          <div className="flex items-center gap-2 px-4 py-2">
+            <Logo href="/app/chat" className="mr-auto" />
+            <Link href="/app/billing" className="chip !py-1.5">
+              <span className="font-semibold text-fg">{user.credits.toLocaleString("ru-RU")}</span> кр.
+            </Link>
+            <Suspense>
+              <MobileChats chats={chats} />
+            </Suspense>
+          </div>
         </div>
+        <InstallHint />
         {isDemoMode() && (
           <div className="border-b border-line bg-accent/10 px-4 py-1.5 text-center text-xs text-accent">
             Демо-режим: нейросеть не подключена, ответы показаны для примера

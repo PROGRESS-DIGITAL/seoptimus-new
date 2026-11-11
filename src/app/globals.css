@@ -57,6 +57,27 @@ html {
 body {
   background: var(--color-bg);
   color: var(--color-fg);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Кабинет на телефоне ведёт себя как приложение: без «резинки» и с отступами под чёлку и полоску жестов */
+.app-shell {
+  overscroll-behavior: none;
+}
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top), 0px);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* iOS увеличивает страницу при фокусе на поле с шрифтом меньше 16px */
+@media (max-width: 767px) {
+  textarea,
+  input,
+  select {
+    font-size: 16px !important;
+  }
 }
 
 ::selection {

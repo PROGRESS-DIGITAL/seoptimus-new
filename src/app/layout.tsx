@@ -8,9 +8,11 @@ export const metadata: Metadata = {
   title: "Нейросеть пишет текст онлайн бесплатно — SEOPTIMUS",
   description:
     "Генерация текстов и изображений нейросетью: SEO-тексты, статьи, рерайт, посты, карточки товаров. Бесплатно без регистрации.",
+  appleWebApp: { capable: true, title: "SEOPTIMUS", statusBarStyle: "black-translucent" },
+  formatDetection: { telephone: false },
 };
 
-export const viewport: Viewport = { themeColor: "#07070b" };
+export const viewport: Viewport = { themeColor: "#07070b", viewportFit: "cover", interactiveWidget: "resizes-content" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

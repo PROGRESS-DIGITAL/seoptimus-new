@@ -41,16 +41,18 @@ export function SideNav({ admin }: { admin: boolean }) {
 export function BottomNav() {
   const path = usePathname();
   return (
-    <nav className="grid grid-cols-5 border-t border-line bg-surface/90 backdrop-blur-xl md:hidden">
+    <nav className="pb-safe grid grid-cols-5 border-t border-line bg-surface/90 backdrop-blur-xl md:hidden">
       {ITEMS.map(({ href, label, icon: Icon }) => {
         const active = path.startsWith(href);
         return (
           <Link
             key={href}
             href={href}
-            className={"grid justify-items-center gap-0.5 py-2 text-[10px] " + (active ? "text-accent" : "text-muted")}
+            className={"grid justify-items-center gap-1 pb-1.5 pt-2 text-[10px] transition active:scale-95 " + (active ? "text-accent" : "text-muted")}
           >
-            <Icon className="h-5 w-5" />
+            <span className={"grid h-7 w-12 place-items-center rounded-full transition " + (active ? "bg-accent/15" : "")}>
+              <Icon className="h-5 w-5" />
+            </span>
             {label.split(" ")[0]}
           </Link>
         );

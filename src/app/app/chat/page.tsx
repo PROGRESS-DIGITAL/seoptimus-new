@@ -4,9 +4,11 @@ import Chat from "@/components/Chat";
 import { requireUser } from "@/lib/auth";
 import { modelOptions } from "@/lib/generators";
 
-export default async function ChatPage({ searchParams }: { searchParams: Promise<{ c?: string }> }) {
+export default async function ChatPage({ searchParams }: { searchParams: Promise<{ c?: string; gen?: string; q?: string }> }) {
   const user = await requireUser();
-  const id = Number((await searchParams).c) || null;
+  const sp = await searchParams;
+  const id = Number(sp.c) || null;
+  const genId = !id ? Number(sp.gen) || 0 : 0;
   let initial: { role: "user" | "assistant"; content: string }[] = [];
   let modelSlug: string | null = null;
   if (id) {
@@ -24,9 +26,26 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
       initial = rows.filter((m) => m.role !== "system").map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
     }
   }
+  // Переход из генератора: показываем результат и сразу отправляем выбранный вариант
+  if (genId) {
+    const [g] = await db
+      .select()
+      .from(schema.generations)
+      .where(and(eq(schema.generations.id, genId), eq(schema.generations.userId, user.id)));
+    if (g?.kind === "text") {
+      initial = [
+        { role: "user", content: Object.values(g.input).filter(Boolean).join("\n") },
+        { role: "assistant", content: g.output },
+      ];
+      modelSlug = g.modelSlug;
+    }
+  }
   return (
     <div className="h-full">
-      <Chat key={id ?? "new"} conversationId={id} initial={initial} models={await modelOptions("text", user)} initialModel={modelSlug} />
+      <Chat conversationId={id} initial={initial} models={await modelOptions("text", user)} initialModel={modelSlug}
+        fromGeneration={genId && initial.length ? genId : undefined}
+        autoSend={genId && initial.length ? sp.q?.slice(0, 500) : undefined}
+      />
     </div>
   );
 }

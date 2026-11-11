@@ -35,7 +35,7 @@ export default async function Billing() {
   const current = plans.find((p) => p.slug === user.planSlug);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-14 p-6 sm:p-10">
+    <div className="mx-auto max-w-5xl space-y-14 px-4 py-6 sm:p-10">
       <section>
         <PageHead title="Тариф и оплата" />
         <div className="glow relative overflow-hidden rounded-3xl bg-surface-2 p-7 sm:p-9">

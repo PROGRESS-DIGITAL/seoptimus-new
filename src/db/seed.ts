@@ -23,7 +23,7 @@ const models: (typeof schema.models.$inferInsert)[] = [
     creditPrice: 1, minCredits: 1, freeAccess: true, isDefault: true, sort: 1 },
   { slug: "gpt-flagship", title: "Умная", providerModel: "gpt-5", kind: "text",
     creditPrice: 5, minCredits: 3, freeAccess: false, sort: 2 },
-  { slug: "gpt-image", title: "Изображения", providerModel: "gpt-image-1", kind: "image",
+  { slug: "gpt-image", title: "Изображения", providerModel: "gpt-image-2", kind: "image",
     creditPrice: 20, minCredits: 20, freeAccess: false, sort: 10 },
 ];
 

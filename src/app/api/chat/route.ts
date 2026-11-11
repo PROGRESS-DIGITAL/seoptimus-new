@@ -5,6 +5,9 @@ import { providerFor, type ChatMessage } from "@/lib/ai/gateway";
 import { chargeUpTo, textCost } from "@/lib/billing";
 import { errMessage, jsonError, textStream } from "@/lib/http";
 import { resolveModel } from "@/lib/models";
+import { META_SEP } from "@/lib/stream-meta";
+import { suggestFollowUps } from "@/lib/suggest";
+import { renderTemplate } from "@/lib/prompt";
 
 export const runtime = "nodejs";
 
@@ -34,6 +37,28 @@ export async function POST(req: Request) {
         .values({ userId: user.id, title: text.slice(0, 60), modelSlug: model.slug })
         .returning();
       convId = c.id;
+      // Продолжение результата генератора: кладём запрос и ответ в начало чата
+      const genId = Number(body.fromGeneration) || 0;
+      if (genId) {
+        const [g] = await db
+          .select()
+          .from(schema.generations)
+          .where(and(eq(schema.generations.id, genId), eq(schema.generations.userId, user.id)));
+        if (g && g.kind === "text") {
+          const [tpl] = g.generatorSlug
+            ? await db.select().from(schema.generators).where(eq(schema.generators.slug, g.generatorSlug))
+            : [];
+          const asked = tpl ? renderTemplate(tpl.promptTemplate, g.input) : Object.values(g.input).join("\n");
+          await db.insert(schema.messages).values([
+            { conversationId: convId, role: "user", content: asked },
+            { conversationId: convId, role: "assistant", content: g.output, modelSlug: g.modelSlug },
+          ]);
+          await db
+            .update(schema.conversations)
+            .set({ title: (tpl?.title ? `${tpl.title}: ` : "") + text.slice(0, 50) })
+            .where(eq(schema.conversations.id, convId));
+        }
+      }
     }
 
     const history = await db
@@ -65,6 +90,11 @@ export async function POST(req: Request) {
           .update(schema.conversations)
           .set({ updatedAt: new Date(), modelSlug: model.slug })
           .where(eq(schema.conversations.id, convId));
+        if (result.text.trim()) {
+          write(META_SEP); // клиент сразу покажет, что подбираются варианты
+          const suggestions = await suggestFollowUps(text, result.text);
+          write(JSON.stringify({ suggestions }));
+        }
       },
       req.signal,
       { "X-Conversation-Id": String(convId) },

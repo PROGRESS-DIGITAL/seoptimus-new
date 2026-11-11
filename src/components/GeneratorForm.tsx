@@ -3,9 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Copy, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
+import CopyButton from "@/components/CopyButton";
+import Suggestions from "@/components/Suggestions";
 import type { GeneratorField } from "@/db/schema";
 import { readTextStream } from "@/lib/stream-client";
+import { META_SEP, splitMeta, type StreamMeta } from "@/lib/stream-meta";
 
 type ModelOption = { slug: string; title: string; locked: boolean };
 
@@ -31,27 +34,44 @@ export default function GeneratorForm({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [left, setLeft] = useState(guestRemaining ?? 0);
-  const [copied, setCopied] = useState(false);
+  const [meta, setMeta] = useState<StreamMeta | null>(null);
+  const [waitingTips, setWaitingTips] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError("");
     setOutput("");
+    setMeta(null);
     try {
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ generator: slug, model: model || undefined, input: values }),
       });
-      await readTextStream(res, setOutput);
+      await readTextStream(res, (full) => {
+        const { text, meta } = splitMeta(full);
+        setOutput(text);
+        setWaitingTips(!meta && full.includes(META_SEP));
+        if (meta) setMeta(meta);
+      });
       if (guest) setLeft((n) => Math.max(0, n - 1));
       else router.refresh(); // обновить баланс в шапке
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
+      setWaitingTips(false);
       setBusy(false);
     }
+  }
+
+  /** Вариант продолжения: дальше работаем с текстом в чате */
+  function continueWith(s: string) {
+    if (guest || !meta?.generationId) {
+      router.push("/login");
+      return;
+    }
+    router.push(`/app/chat?gen=${meta.generationId}&q=${encodeURIComponent(s)}`);
   }
 
   const set = (name: string, v: string) => setValues({ ...values, [name]: v });
@@ -136,20 +156,17 @@ export default function GeneratorForm({
         <div className="animate-rise rounded-2xl border border-line bg-black/30 p-5">
           <div className="mb-3 flex items-center justify-between text-xs text-muted">
             <span>Результат · {output.length.toLocaleString("ru-RU")} знаков</span>
-            <button
-              type="button"
-              className="chip chip-btn !py-0.5 !text-xs"
-              onClick={() => {
-                navigator.clipboard.writeText(output);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 1500);
-              }}
-            >
-              {copied ? <Check className="h-3.5 w-3.5 text-accent" /> : <Copy className="h-3.5 w-3.5" />}
-              {copied ? "Скопировано" : "Копировать"}
-            </button>
+            {!busy && <CopyButton text={output} />}
           </div>
-          <div className={"whitespace-pre-wrap leading-relaxed " + (busy ? "caret" : "")}>{output}</div>
+          <div className={"whitespace-pre-wrap leading-relaxed " + (busy && !waitingTips ? "caret" : "")}>{output}</div>
+          {(waitingTips || (meta?.suggestions?.length ?? 0) > 0) && (
+            <div className="mt-5 border-t border-line pt-4">
+              <div className="mb-2.5 text-xs text-muted">
+                Продолжить{guest ? " в чате после входа" : " в чате"}:
+              </div>
+              <Suggestions items={meta?.suggestions ?? []} loading={waitingTips} onPick={continueWith} />
+            </div>
+          )}
         </div>
       )}
     </div>

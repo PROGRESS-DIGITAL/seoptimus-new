@@ -3,7 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUp, Sparkles } from "lucide-react";
+import CopyButton from "@/components/CopyButton";
+import Suggestions from "@/components/Suggestions";
 import { readTextStream } from "@/lib/stream-client";
+import { META_SEP, splitMeta } from "@/lib/stream-meta";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type ModelOption = { slug: string; title: string; locked: boolean };
@@ -20,11 +23,17 @@ export default function Chat({
   initial,
   models,
   initialModel,
+  fromGeneration,
+  autoSend,
 }: {
   conversationId: number | null;
   initial: Msg[];
   models: ModelOption[];
   initialModel?: string | null;
+  /** Чат начинается с результата генератора */
+  fromGeneration?: number;
+  /** Сразу отправить это сообщение (вариант продолжения из генератора) */
+  autoSend?: string;
 }) {
   const router = useRouter();
   const [msgs, setMsgs] = useState<Msg[]>(initial);
@@ -32,33 +41,74 @@ export default function Chat({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [model, setModel] = useState(initialModel ?? models.find((m) => !m.locked)?.slug ?? "");
-  const [convId, setConvId] = useState(conversationId);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [waitingTips, setWaitingTips] = useState(false);
   const end = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLTextAreaElement>(null);
+  const started = useRef(false);
+  const convIdRef = useRef(conversationId);
+
+  // На ПК сразу ставим курсор в поле, на телефоне не открываем клавиатуру сама по себе
+  useEffect(() => {
+    if (window.matchMedia("(min-width: 768px)").matches) box.current?.focus();
+  }, []);
 
   useEffect(() => {
     end.current?.scrollIntoView({ behavior: "smooth" });
-  }, [msgs]);
+  }, [msgs, suggestions, waitingTips]);
 
-  async function send(preset?: string) {
+  // Один экземпляр на все чаты: сбрасываемся, только когда открыли другой чат.
+  // Обновление страницы после первого сообщения (тот же чат) состояние не трогает.
+  const seen = useRef<{ conv: number | null; gen?: number; q?: string } | null>(null);
+  useEffect(() => {
+    const prev = seen.current;
+    seen.current = { conv: conversationId, gen: fromGeneration, q: autoSend };
+    const sameChat =
+      prev &&
+      (conversationId === convIdRef.current ||
+        (conversationId === null && convIdRef.current === null && prev.gen === fromGeneration && prev.q === autoSend));
+    if (prev && sameChat) return;
+    if (prev) {
+      setMsgs(initial);
+      convIdRef.current = conversationId;
+      setSuggestions([]);
+      setError("");
+      if (initialModel) setModel(initialModel);
+    }
+    if (autoSend && !started.current) {
+      started.current = true;
+      send(autoSend, conversationId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversationId, fromGeneration, autoSend]);
+
+  async function send(preset?: string, forConv: number | null = convIdRef.current) {
     const message = (preset ?? text).trim();
     if (!message || busy) return;
     setText("");
     setError("");
     setBusy(true);
+    setSuggestions([]);
     setMsgs((m) => [...m, { role: "user", content: message }, { role: "assistant", content: "" }]);
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationId: convId, model, message }),
+        body: JSON.stringify({ conversationId: forConv, model, message, fromGeneration: forConv ? undefined : fromGeneration }),
       });
       const newId = Number(res.headers.get("X-Conversation-Id")) || null;
-      await readTextStream(res, (full) =>
-        setMsgs((m) => [...m.slice(0, -1), { role: "assistant", content: full }]),
-      );
-      if (newId && newId !== convId) {
-        setConvId(newId);
+      let tips: string[] = [];
+      await readTextStream(res, (full) => {
+        const { text: answer, meta } = splitMeta(full);
+        // Текст закончился, сервер подбирает варианты продолжения
+        setWaitingTips(full.length > 0 && !meta && full.includes(META_SEP));
+        if (meta?.suggestions) tips = meta.suggestions;
+        setMsgs((m) => [...m.slice(0, -1), { role: "assistant", content: answer }]);
+      });
+      setWaitingTips(false);
+      setSuggestions(tips);
+      if (newId && newId !== forConv) {
+        convIdRef.current = newId;
         window.history.replaceState(null, "", `/app/chat?c=${newId}`);
       }
       router.refresh();
@@ -66,8 +116,9 @@ export default function Chat({
       setError(e instanceof Error ? e.message : String(e));
       setMsgs((m) => m.slice(0, -1));
     } finally {
+      setWaitingTips(false);
       setBusy(false);
-      box.current?.focus();
+      if (window.matchMedia("(min-width: 768px)").matches) box.current?.focus();
     }
   }
 
@@ -84,14 +135,14 @@ export default function Chat({
       <div className="rounded-3xl bg-surface-2 p-3">
         <textarea
           ref={box}
-          autoFocus
           className="max-h-48 min-h-14 w-full resize-none bg-transparent px-2 pt-1 text-[15px] outline-none placeholder:text-muted/60"
           rows={2}
           placeholder="Спросите что угодно…"
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
+            // На телефоне Enter переносит строку, отправка кнопкой
+            if (e.key === "Enter" && !e.shiftKey && window.matchMedia("(min-width: 768px)").matches) {
               e.preventDefault();
               send();
             }
@@ -167,9 +218,16 @@ export default function Chat({
                 </span>
                 <div className="min-w-0 flex-1 pt-1">
                   {m.content ? (
-                    <div className={"whitespace-pre-wrap leading-relaxed " + (busy && i === msgs.length - 1 ? "caret" : "")}>
-                      {m.content}
-                    </div>
+                    <>
+                      <div className={"whitespace-pre-wrap leading-relaxed " + (busy && i === msgs.length - 1 && !waitingTips ? "caret" : "")}>
+                        {m.content}
+                      </div>
+                      {!(busy && i === msgs.length - 1) && (
+                        <div className="mt-2.5 flex">
+                          <CopyButton text={m.content} />
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="grid max-w-sm gap-2 pt-1">
                       <div className="shimmer h-3 w-full rounded-full" />
@@ -180,10 +238,15 @@ export default function Chat({
               </div>
             ),
           )}
+          {(waitingTips || suggestions.length > 0) && (
+            <div className="pl-[46px]">
+              <Suggestions items={suggestions} loading={waitingTips} onPick={(s) => send(s)} />
+            </div>
+          )}
           <div ref={end} />
         </div>
       </div>
-      <div className="mx-auto w-full max-w-3xl px-4 pb-4">
+      <div className="mx-auto w-full max-w-3xl px-3 pb-3 sm:px-4 sm:pb-4">
         {error && <div className="mb-2 rounded-xl border border-danger/30 bg-danger/10 p-3 text-sm text-danger">{error}</div>}
         {composer}
       </div>
