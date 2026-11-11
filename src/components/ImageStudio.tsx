@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Download, ImageIcon, ImagePlus, Lock, Wand2, X } from "lucide-react";
+import AutoTextarea from "@/components/AutoTextarea";
 import { IMAGE_FORMATS, MAX_REF_BYTES, MAX_REFS } from "@/lib/image-formats";
 
 type ModelOption = { slug: string; title: string; locked: boolean; price: number };
@@ -127,8 +128,9 @@ export default function ImageStudio({ models, recent }: { models: ModelOption[];
               )}
             </div>
           )}
-          <textarea
-            className="min-h-24 w-full resize-none bg-transparent text-[15px] outline-none placeholder:text-muted/60"
+          <AutoTextarea
+            maxVh={40}
+            className="min-h-24 w-full bg-transparent text-[15px] outline-none placeholder:text-muted/60"
             placeholder={
               withRefs
                 ? "Что хотите сделать с изображением? Например: убери фон и добавь мягкую тень"

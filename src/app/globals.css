@@ -71,6 +71,12 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* Уголок для растягивания поля ввода: заметный на тёмном фоне */
+.auto-textarea::-webkit-resizer {
+  background:
+    linear-gradient(135deg, transparent 0 55%, #ffffff40 55% 62%, transparent 62% 72%, #ffffff40 72% 79%, transparent 79%);
+}
+
 /* iOS увеличивает страницу при фокусе на поле с шрифтом меньше 16px */
 @media (max-width: 767px) {
   textarea,

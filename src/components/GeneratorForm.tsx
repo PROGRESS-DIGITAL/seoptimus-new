@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Sparkles } from "lucide-react";
+import AutoTextarea from "@/components/AutoTextarea";
 import CopyButton from "@/components/CopyButton";
 import Suggestions from "@/components/Suggestions";
 import type { GeneratorField } from "@/db/schema";
@@ -83,8 +84,9 @@ export default function GeneratorForm({
           <label key={f.name} className="label">
             {f.label}
             {f.type === "textarea" ? (
-              <textarea
-                className="input min-h-28 resize-y"
+              <AutoTextarea
+                maxVh={55}
+                className="input min-h-28"
                 placeholder={f.placeholder}
                 required={f.required}
                 value={values[f.name]}

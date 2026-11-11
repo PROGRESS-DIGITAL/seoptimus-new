@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowUp, Sparkles } from "lucide-react";
+import AutoTextarea from "@/components/AutoTextarea";
 import CopyButton from "@/components/CopyButton";
 import Suggestions from "@/components/Suggestions";
 import { readTextStream } from "@/lib/stream-client";
@@ -133,9 +134,10 @@ export default function Chat({
       }}
     >
       <div className="rounded-3xl bg-surface-2 p-3">
-        <textarea
+        <AutoTextarea
           ref={box}
-          className="max-h-48 min-h-14 w-full resize-none bg-transparent px-2 pt-1 text-[15px] outline-none placeholder:text-muted/60"
+          maxVh={40}
+          className="min-h-14 w-full bg-transparent px-2 pt-1 text-[15px] outline-none placeholder:text-muted/60"
           rows={2}
           placeholder="Спросите что угодно…"
           value={text}
