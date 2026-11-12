@@ -36,16 +36,16 @@ export default async function Pricing() {
   return (
     <div className="relative overflow-hidden">
       <Aurora subtle />
-      <div className="mx-auto max-w-6xl px-4 pt-16">
+      <div className="mx-auto max-w-6xl px-4 pt-10">
         <div className="text-center">
           <h1 className="display text-4xl sm:text-5xl">
             Тарифы <span className="gradient-text">без путаницы</span>
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-muted">
+          <p className="mx-auto mt-3 max-w-2xl text-lg text-muted">
             Три тарифа и одна валюта. Кредиты тратятся на тексты, чат и изображения.
           </p>
         </div>
-        <div className="mt-16">
+        <div className="mt-10">
           <PlanCards
             plans={plans}
             action={() => (
