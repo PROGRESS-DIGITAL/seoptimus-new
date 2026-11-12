@@ -1,19 +1,17 @@
-import { Check } from "lucide-react";
+import { Check, ImageIcon, Sparkles, Zap } from "lucide-react";
 import type { Plan } from "@/db/schema";
+import { PLAN_EXTRA, PLAN_FEATURES, planPricing } from "@/lib/plan-features";
 
-const PERKS: Record<string, string[]> = {
-  start: ["Все генераторы и чат", "Умная модель и изображения", "История всех генераций"],
-  pro: ["Всё из «Старт»", "В 4 раза больше кредитов", "Хватит на ежедневную работу"],
-  business: ["Всё из «Про»", "Самый большой запас кредитов", "Оплата по счёту для юрлиц"],
-};
-
-export default function PlanCards({ plans, action }: { plans: Plan[]; action?: (p: Plan) => React.ReactNode }) {
+export default async function PlanCards({ plans, action }: { plans: Plan[]; action?: (p: Plan) => React.ReactNode }) {
+  const { estimate } = await planPricing();
   // Подсвечиваем средний тариф
   const featured = plans[Math.min(1, plans.length - 1)]?.slug;
   return (
     <div className="grid gap-5 md:grid-cols-3">
       {plans.map((p) => {
         const hot = p.slug === featured;
+        const e = estimate(p.monthlyCredits);
+        const fmt = (n: number) => n.toLocaleString("ru-RU");
         return (
           <div
             key={p.slug}
@@ -29,16 +27,41 @@ export default function PlanCards({ plans, action }: { plans: Plan[]; action?: (
             )}
             <div className="display text-lg">{p.name}</div>
             <div className="mt-4 flex items-baseline gap-1.5">
-              <span className="display text-4xl">{p.priceRub.toLocaleString("ru-RU")}</span>
+              <span className="display text-4xl">{fmt(p.priceRub)}</span>
               <span className="text-muted">₽ / мес</span>
             </div>
-            <div className="mt-2 text-sm font-medium text-accent">
-              {p.monthlyCredits.toLocaleString("ru-RU")} кредитов каждый месяц
-            </div>
+            <div className="mt-2 text-sm font-medium text-accent">{fmt(p.monthlyCredits)} кредитов каждый месяц</div>
             <p className="mt-3 text-sm text-muted">{p.description}</p>
-            <ul className="mt-5 flex-1 space-y-2.5 text-sm">
-              {(PERKS[p.slug] ?? []).map((perk) => (
-                <li key={perk} className="flex gap-2.5">
+
+            <div className="mt-5 rounded-2xl border border-line bg-white/[0.03] p-4">
+              <div className="text-xs font-medium uppercase tracking-wider text-muted">Хватит примерно на</div>
+              <ul className="mt-3 space-y-2 text-sm">
+                {e.fast > 0 && (
+                  <li className="flex items-center gap-2.5">
+                    <Zap className="h-4 w-4 shrink-0 text-accent" />
+                    <span><b className="font-semibold">{fmt(e.fast)}</b> текстов быстрой моделью</span>
+                  </li>
+                )}
+                {e.smart > 0 && (
+                  <li className="flex items-center gap-2.5">
+                    <Sparkles className="h-4 w-4 shrink-0 text-accent" />
+                    <span>или <b className="font-semibold">{fmt(e.smart)}</b> текстов умной</span>
+                  </li>
+                )}
+                {e.images > 0 && (
+                  <li className="flex items-center gap-2.5">
+                    <ImageIcon className="h-4 w-4 shrink-0 text-accent" />
+                    <span>или <b className="font-semibold">{fmt(e.images)}</b> изображений</span>
+                  </li>
+                )}
+              </ul>
+              <div className="mt-3 text-xs text-muted/80">Можно сочетать как угодно: кредиты общие</div>
+            </div>
+
+            <div className="mt-5 text-xs font-medium uppercase tracking-wider text-muted">Что входит</div>
+            <ul className="mt-3 flex-1 space-y-2.5 text-sm">
+              {[...(PLAN_EXTRA[p.slug] ?? []), ...PLAN_FEATURES].map((perk, i) => (
+                <li key={perk} className={"flex gap-2.5 " + (i < (PLAN_EXTRA[p.slug]?.length ?? 0) ? "font-medium text-fg" : "")}>
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                   {perk}
                 </li>
