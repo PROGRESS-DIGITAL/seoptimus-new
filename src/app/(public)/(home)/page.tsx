@@ -2,10 +2,10 @@ import Link from "next/link";
 import { ArrowRight, Gift, History, ImageIcon, MessagesSquare, Zap } from "lucide-react";
 import Aurora from "@/components/Aurora";
 import GeneratorCard from "@/components/GeneratorCard";
-import GeneratorForm from "@/components/GeneratorForm";
+import HeroGenerators, { type HeroTab } from "@/components/HeroGenerators";
 import PlanCards from "@/components/PlanCards";
 import { getUser } from "@/lib/auth";
-import { enabledGenerators, generatorBySlug } from "@/lib/generators";
+import { enabledGenerators } from "@/lib/generators";
 import { guestRemaining } from "@/lib/guest";
 import { activePlans } from "@/lib/pricing";
 
@@ -16,6 +16,15 @@ const FORMATS = [
   "Коммерческие предложения", "Письма", "Ответы на отзывы", "Контент-планы", "Технические задания", "Переводы",
 ];
 
+/** Вкладки генератора на первом экране: короткое имя, заголовок и подсказка */
+const HERO_TABS: Omit<HeroTab, "fields">[] = [
+  { slug: "text", tab: "Текст", title: "Генератор текста", hint: "Статьи, письма, КП, отзывы и ещё десяток форматов" },
+  { slug: "seo", tab: "SEO", title: "Генератор SEO", hint: "Title, Description, H1 и SEO-тексты по ключевым словам" },
+  { slug: "correct", tab: "Правка", title: "Правка текста", hint: "Исправит орфографию, пунктуацию и стилистику" },
+  { slug: "rewrite", tab: "Рерайт", title: "Рерайт текста", hint: "Перескажет своими словами с сохранением смысла и объёма" },
+  { slug: "smm", tab: "Соцсети", title: "Контент для соцсетей", hint: "Пост для ВКонтакте, Telegram, Дзена нужной длины" },
+];
+
 const STEPS = [
   { n: "01", title: "Опишите задачу", text: "Тема, формат и пара уточнений. Никаких сложных промптов." },
   { n: "02", title: "Нейросеть пишет", text: "Текст появляется на глазах, обычно быстрее чем за минуту." },
@@ -23,12 +32,11 @@ const STEPS = [
 ];
 
 export default async function Home() {
-  const [user, main, all, plans] = await Promise.all([
-    getUser(),
-    generatorBySlug("text"),
-    enabledGenerators(),
-    activePlans(),
-  ]);
+  const [user, all, plans] = await Promise.all([getUser(), enabledGenerators(), activePlans()]);
+  const tabs: HeroTab[] = HERO_TABS.flatMap((t) => {
+    const g = all.find((x) => x.slug === t.slug);
+    return g ? [{ ...t, fields: g.fields }] : [];
+  });
   const remaining = user ? 0 : await guestRemaining();
   const cabinet = user ? "/app" : "/login";
 
@@ -71,14 +79,10 @@ export default async function Home() {
             </dl>
           </div>
 
-          <div id="try" className="glow animate-rise scroll-mt-24 rounded-3xl [animation-delay:120ms]">
+          <div id="try" className="glow animate-rise min-w-0 scroll-mt-24 rounded-3xl [animation-delay:120ms]">
             <div className="glass p-5 sm:p-7">
-              <div className="mb-5 flex items-center gap-2 text-sm text-muted">
-                <span className="h-2.5 w-2.5 rounded-full bg-accent shadow-[0_0_12px] shadow-accent" />
-                Генератор текста
-              </div>
-              {main ? (
-                <GeneratorForm slug={main.slug} fields={main.fields} guest={!user} guestRemaining={remaining} />
+              {tabs.length > 0 ? (
+                <HeroGenerators tabs={tabs} guest={!user} guestRemaining={remaining} />
               ) : (
                 <p className="text-muted">Генератор временно недоступен</p>
               )}

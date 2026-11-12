@@ -35,6 +35,15 @@ const f = (
   extra: Partial<GeneratorField> = {},
 ): GeneratorField => ({ name, label, type, ...extra });
 
+/** Типы запросов генератора текста (как на старом сайте) */
+const TEXT_FORMATS = [
+  "Написать статью", "Написать заголовок", "Дать ответ на вопрос", "Придумать историю", "Написать доклад",
+  "Написать контент-план", "Написать техническое задание", "Составить коммерческое предложение",
+  "Выполнить тестовое задание", "Составить чек-лист", "Написать короткий рассказ", "Составить оглавление",
+  "Написать текст для карточки товара", "Написать отзыв", "Написать ответ на отзыв", "Написать письмо",
+  "Перевести текст на английский", "Написать код",
+];
+
 const generators: (typeof schema.generators.$inferInsert)[] = [
   {
     slug: "text",
@@ -43,16 +52,12 @@ const generators: (typeof schema.generators.$inferInsert)[] = [
     publicPath: null,
     sort: 1,
     fields: [
-      f("format", "Что написать", "select", {
-        options: ["Статья", "Пост", "Письмо", "Коммерческое предложение", "Техническое задание",
-          "Отзыв", "Ответ на отзыв", "Контент-план", "История", "Доклад", "Чек-лист", "Перевод на английский"],
-        required: true,
-      }),
+      f("format", "Тип запроса", "select", { options: TEXT_FORMATS, required: true }),
       f("topic", "Тема или задача", "textarea", { placeholder: "Например: преимущества кофемашины для офиса", required: true }),
       f("length", "Объём", "select", { options: ["Коротко (до 500 знаков)", "Средне (1000–1500 знаков)", "Подробно (2000+ знаков)"] }),
     ],
     systemPrompt: SYSTEM_BASE,
-    promptTemplate: "Напиши: {{format}}.\nТема: {{topic}}\nОбъём: {{length}}",
+    promptTemplate: "Задача: {{format}}.\nТема: {{topic}}\nОбъём: {{length}}",
   },
   {
     slug: "seo",
@@ -123,19 +128,23 @@ const generators: (typeof schema.generators.$inferInsert)[] = [
   },
   {
     slug: "smm",
-    title: "Посты для соцсетей",
-    description: "Пост для ВКонтакте, Telegram, VC.ru и других площадок",
+    title: "Контент для соцсетей",
+    description: "Посты для ВКонтакте, Telegram, Дзена и других площадок нужной длины, с эмодзи или без",
     publicPath: "/smm-generator",
     seoTitle: "Генератор постов для соцсетей нейросетью — SEOPTIMUS",
-    seoDescription: "Нейросеть напишет пост для ВКонтакте, Telegram или VC.ru. Бесплатно без регистрации.",
+    seoDescription: "Нейросеть напишет пост для ВКонтакте, Telegram или Дзена нужной длины. Бесплатно без регистрации.",
     sort: 6,
     fields: [
-      f("network", "Площадка", "select", { options: ["ВКонтакте", "Telegram", "VC.ru", "Дзен", "Одноклассники"], required: true }),
-      f("topic", "О чём пост", "textarea", { required: true }),
-      f("emoji", "Эмодзи", "select", { options: ["Да", "Нет"] }),
+      f("length", "Количество символов", "select", { options: ["500", "1000", "1500", "2000", "3000"], default: "1000", half: true }),
+      f("network", "Социальная сеть", "select", { options: ["ВКонтакте", "Telegram", "Дзен", "Одноклассники", "VC.ru", "Пикабу"], required: true, half: true }),
+      f("emoji", "Добавить эмодзи 🙌", "checkbox"),
+      f("topic", "Запрос для поста", "textarea", {
+        placeholder: "Опишите подробно или кратко, о чём пост: повод, продукт, аудитория, призыв к действию",
+        required: true,
+      }),
     ],
-    systemPrompt: SYSTEM_BASE + " Ты SMM-специалист, знаешь форматы и длину постов для каждой площадки.",
-    promptTemplate: "Напиши пост для площадки {{network}}.\nТема: {{topic}}\nИспользовать эмодзи: {{emoji}}",
+    systemPrompt: SYSTEM_BASE + " Ты SMM-специалист, знаешь форматы и длину постов для каждой площадки. Пишешь живо, с цепляющим первым предложением, короткими абзацами и понятным призывом в конце.",
+    promptTemplate: "Напиши пост для площадки {{network}}, объём около {{length}} знаков.\nТема: {{topic}}\nЭмодзи: {{emoji}}",
   },
   {
     slug: "product-card",

@@ -212,6 +212,24 @@ select option {
   .input-sm {
     @apply rounded-lg border border-line-2 bg-white/[0.04] px-2 py-1 text-sm text-fg outline-none focus:border-accent/70;
   }
+  .check {
+    @apply grid h-[22px] w-[22px] shrink-0 cursor-pointer appearance-none place-items-center rounded-[7px] border border-line-2 bg-white/[0.04] transition;
+  }
+  .check:checked {
+    @apply border-accent bg-accent;
+  }
+  .check:checked::after {
+    content: "";
+    width: 6px;
+    height: 11px;
+    margin-top: -2px;
+    border: solid var(--color-accent-ink);
+    border-width: 0 2.5px 2.5px 0;
+    transform: rotate(45deg);
+  }
+  .check:focus-visible {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 20%, transparent);
+  }
   .label {
     @apply grid gap-1.5 text-sm font-medium text-muted;
   }

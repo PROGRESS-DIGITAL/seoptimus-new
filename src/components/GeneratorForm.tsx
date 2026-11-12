@@ -28,7 +28,9 @@ export default function GeneratorForm({
 }) {
   const router = useRouter();
   const [values, setValues] = useState<Record<string, string>>(() =>
-    Object.fromEntries(fields.map((f) => [f.name, f.type === "select" ? f.options?.[0] ?? "" : ""])),
+    Object.fromEntries(
+      fields.map((f) => [f.name, f.type === "select" ? (f.default && f.options?.includes(f.default) ? f.default : f.options?.[0] ?? "") : f.type === "checkbox" ? "Нет" : ""]),
+    ),
   );
   const [model, setModel] = useState(models?.find((m) => !m.locked)?.slug ?? "");
   const [output, setOutput] = useState("");
@@ -79,9 +81,20 @@ export default function GeneratorForm({
 
   return (
     <div className="grid gap-5">
-      <form onSubmit={submit} className="grid gap-4">
-        {fields.map((f) => (
-          <label key={f.name} className="label">
+      <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+        {fields.map((f) =>
+          f.type === "checkbox" ? (
+            <label key={f.name} className="flex cursor-pointer select-none items-center gap-3 text-sm text-fg sm:col-span-2">
+              <input
+                type="checkbox"
+                className="check"
+                checked={values[f.name] === "Да"}
+                onChange={(e) => set(f.name, e.target.checked ? "Да" : "Нет")}
+              />
+              {f.label}
+            </label>
+          ) : (
+          <label key={f.name} className={"label " + (f.half ? "" : "sm:col-span-2")}>
             {f.label}
             {f.type === "textarea" ? (
               <AutoTextarea
@@ -106,9 +119,10 @@ export default function GeneratorForm({
               />
             )}
           </label>
-        ))}
+          ),
+        )}
         {models && models.length > 1 && (
-          <label className="label">
+          <label className="label sm:col-span-2">
             Модель
             <select className="input" value={model} onChange={(e) => setModel(e.target.value)}>
               {models.map((m) => (
@@ -120,7 +134,7 @@ export default function GeneratorForm({
             </select>
           </label>
         )}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:col-span-2">
           <button disabled={busy || (guest && left <= 0)} className="btn">
             <Sparkles className={"h-4 w-4 " + (busy ? "animate-spin" : "")} />
             {busy ? "Пишу…" : "Сгенерировать"}

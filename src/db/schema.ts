@@ -74,8 +74,12 @@ export const models = pgTable("models", {
 export type GeneratorField = {
   name: string;
   label: string;
-  type: "text" | "textarea" | "select";
+  type: "text" | "textarea" | "select" | "checkbox";
   placeholder?: string;
+  /** Поле в половину ширины формы (два поля в ряд на компьютере) */
+  half?: boolean;
+  /** Значение по умолчанию для списка */
+  default?: string;
   options?: string[];
   required?: boolean;
 };

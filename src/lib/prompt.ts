@@ -16,6 +16,7 @@ export function validateInput(fields: GeneratorField[], input: Record<string, un
   for (const field of fields) {
     const v = typeof input[field.name] === "string" ? (input[field.name] as string).slice(0, 20000) : "";
     if (field.required && !v.trim()) throw new Error(`Заполните поле «${field.label}»`);
+    if (field.type === "checkbox" && v && v !== "Да" && v !== "Нет") throw new Error(`Неверное значение поля «${field.label}»`);
     if (field.type === "select" && v && field.options && !field.options.includes(v))
       throw new Error(`Недопустимое значение поля «${field.label}»`);
     out[field.name] = v;

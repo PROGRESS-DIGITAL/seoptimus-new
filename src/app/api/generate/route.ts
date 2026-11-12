@@ -39,14 +39,21 @@ export async function POST(req: Request) {
 
     const target = lengthTarget(input);
     const rewrite = !!input.source?.trim();
+    // Для кода правила «человеческого текста» не нужны: разметку и переносы не трогаем
+    const code = /\bкод\b/i.test(input.format ?? "");
     const prompt =
       renderTemplate(gen.promptTemplate, input) +
       lengthRule(target, rewrite) +
-      (!rewrite && (target?.min ?? 0) >= 800 ? `\n\n${randomOpening()}` : "");
+      (!rewrite && !code && (target?.min ?? 0) >= 800 ? `\n\n${randomOpening()}` : "");
     return textStream(
       async (write, signal) => {
         const messages: ChatMessage[] = [
-          { role: "system", content: `${gen.systemPrompt}\n\n${HUMAN_STYLE}` },
+          {
+            role: "system",
+            content: code
+              ? `${gen.systemPrompt}\n\nПишешь рабочий код с короткими пояснениями на русском. Код оформляй блоком в тройных обратных кавычках.`
+              : `${gen.systemPrompt}\n\n${HUMAN_STYLE}`,
+          },
           { role: "user", content: prompt },
         ];
         const maxTokens = user ? 16000 : 6000;
@@ -79,7 +86,7 @@ export async function POST(req: Request) {
           tokensIn += more.tokensIn;
           tokensOut += more.tokensOut;
         }
-        const clean = cleanAiTails(text);
+        const clean = code ? text.trim() : cleanAiTails(text);
         result = { text: clean, tokens, tokensIn, tokensOut };
         const credits = user ? await chargeUpTo(user.id, await textCost(model, result.tokensIn, result.tokensOut), "generate", gen.slug) : 0;
         const [row] = await db.insert(schema.generations).values({

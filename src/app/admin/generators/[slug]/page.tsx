@@ -44,7 +44,7 @@ export default async function EditGenerator({ params }: { params: Promise<{ slug
         <textarea name="promptTemplate" defaultValue={g?.promptTemplate} rows={4} required className={inp + " font-mono"} />
       </label>
       <label className={lbl}>
-        Поля формы (JSON: name, label, type = text | textarea | select, options, required, placeholder)
+        Поля формы (JSON: name, label, type = text | textarea | select | checkbox, options, required, placeholder, half)
         <textarea name="fields" defaultValue={g ? JSON.stringify(g.fields, null, 2) : SAMPLE_FIELDS} rows={12} className={inp + " font-mono text-xs"} />
       </label>
       <div className="flex gap-6 text-sm">
