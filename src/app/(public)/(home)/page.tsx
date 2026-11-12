@@ -37,7 +37,8 @@ export default async function Home() {
       {/* Первый экран */}
       <section className="relative overflow-hidden">
         <Aurora />
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-16 pt-14 lg:grid-cols-[1fr_1.05fr] lg:pt-20">
+        {/* Левая часть стоит на месте, когда окно генерации растёт вниз */}
+        <div className="mx-auto grid max-w-6xl items-start gap-12 px-4 pb-16 pt-14 lg:grid-cols-[1fr_1.05fr] lg:pt-20">
           <div className="animate-rise">
             <span className="chip">
               <Gift className="h-3.5 w-3.5 text-accent" />
