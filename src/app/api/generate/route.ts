@@ -8,6 +8,8 @@ import { errMessage, jsonError, textStream } from "@/lib/http";
 import { resolveModel } from "@/lib/models";
 import { renderTemplate, validateInput } from "@/lib/prompt";
 import { META_SEP } from "@/lib/stream-meta";
+import { HUMAN_STYLE, cleanAiTails, lengthRule, lengthTarget, randomOpening } from "@/lib/human-style";
+import { isDemoMode, type ChatMessage } from "@/lib/ai/gateway";
 import { suggestFollowUps } from "@/lib/suggest";
 
 export const runtime = "nodejs";
@@ -35,18 +37,46 @@ export async function POST(req: Request) {
         return jsonError("Недостаточно кредитов. Пополните баланс или выберите модель дешевле.", 402);
     }
 
-    const prompt = renderTemplate(gen.promptTemplate, input);
+    const target = lengthTarget(input);
+    const rewrite = !!input.source?.trim();
+    const prompt =
+      renderTemplate(gen.promptTemplate, input) +
+      lengthRule(target, rewrite) +
+      (!rewrite && (target?.min ?? 0) >= 800 ? `\n\n${randomOpening()}` : "");
     return textStream(
       async (write, signal) => {
-        const result = await providerFor(model).streamChat(
-          model,
-          [
-            { role: "system", content: gen.systemPrompt },
-            { role: "user", content: prompt },
-          ],
-          write,
-          { maxTokens: user ? 8000 : 2000, signal },
-        );
+        const messages: ChatMessage[] = [
+          { role: "system", content: `${gen.systemPrompt}\n\n${HUMAN_STYLE}` },
+          { role: "user", content: prompt },
+        ];
+        const maxTokens = user ? 16000 : 6000;
+        const provider = providerFor(model);
+        let result = await provider.streamChat(model, messages, write, { maxTokens, signal });
+        let text = result.text;
+        let tokens = result.tokens;
+        // Длинный текст по частям: если вышло заметно короче нужного, просим дописать (до 2 раз)
+        for (let i = 0; i < 2 && !isDemoMode() && target && target.min >= 800 && text.length < target.min * 0.85 && !signal.aborted; i++) {
+          const need = target.min - text.length;
+          write("\n\n");
+          const more = await provider.streamChat(
+            model,
+            [
+              ...messages,
+              { role: "assistant", content: text },
+              {
+                role: "user",
+                content: `Текст получился короче нужного: ${text.length} знаков из ${target.min}. Продолжи с того места, где остановился, не повторяя уже написанное. Допиши ещё примерно ${need} знаков в том же стиле. Выдай только продолжение.`,
+              },
+            ],
+            write,
+            { maxTokens, signal },
+          );
+          if (!more.text.trim()) break;
+          text = `${text.trimEnd()}\n\n${more.text.trim()}`;
+          tokens += more.tokens;
+        }
+        const clean = cleanAiTails(text);
+        result = { text: clean, tokens };
         const credits = user ? await chargeUpTo(user.id, textCost(model, result.tokens), "generate", gen.slug) : 0;
         const [row] = await db.insert(schema.generations).values({
           userId: user?.id ?? null,
@@ -62,7 +92,7 @@ export async function POST(req: Request) {
         if (result.text.trim()) {
           write(META_SEP); // клиент сразу покажет, что подбираются варианты
           const suggestions = await suggestFollowUps(prompt, result.text);
-          write(JSON.stringify({ suggestions, generationId: user ? row.id : undefined }));
+          write(JSON.stringify({ suggestions, generationId: user ? row.id : undefined, text: clean }));
         }
       },
       req.signal,

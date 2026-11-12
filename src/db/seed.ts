@@ -19,9 +19,9 @@ const plans: (typeof schema.plans.$inferInsert)[] = [
 ];
 
 const models: (typeof schema.models.$inferInsert)[] = [
-  { slug: "gpt-fast", title: "Быстрая", providerModel: "gpt-5-mini", kind: "text",
+  { slug: "gpt-fast", title: "Быстрая", providerModel: "gpt-6-luna", kind: "text",
     creditPrice: 1, minCredits: 1, freeAccess: true, isDefault: true, sort: 1 },
-  { slug: "gpt-flagship", title: "Умная", providerModel: "gpt-5", kind: "text",
+  { slug: "gpt-flagship", title: "Умная", providerModel: "gpt-6.1-sol", kind: "text",
     creditPrice: 5, minCredits: 3, freeAccess: false, sort: 2 },
   { slug: "gpt-image", title: "Изображения", providerModel: "gpt-image-2", kind: "image",
     creditPrice: 20, minCredits: 20, freeAccess: false, sort: 10 },
@@ -102,7 +102,7 @@ const generators: (typeof schema.generators.$inferInsert)[] = [
       f("source", "Исходный текст", "textarea", { required: true }),
       f("style", "Стиль", "select", { options: ["Как в оригинале", "Проще", "Официальнее", "Продающий"] }),
     ],
-    systemPrompt: SYSTEM_BASE + " Делаешь глубокий рерайт: меняешь структуру фраз и лексику, сохраняя все факты.",
+    systemPrompt: SYSTEM_BASE + " Делаешь глубокий рерайт: меняешь структуру фраз и лексику, сохраняя все факты, все абзацы и объём исходника. Никогда не сокращаешь текст.",
     promptTemplate: "Сделай рерайт текста. Стиль: {{style}}.\n\nТекст:\n{{source}}",
   },
   {

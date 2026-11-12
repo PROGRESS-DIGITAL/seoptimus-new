@@ -4,7 +4,8 @@
  */
 export const META_SEP = "\u001e";
 
-export type StreamMeta = { suggestions?: string[]; generationId?: number };
+/** text: итоговый текст после чистки «хвостов», заменяет то, что пришло стримом */
+export type StreamMeta = { suggestions?: string[]; generationId?: number; text?: string };
 
 export function splitMeta(full: string): { text: string; meta: StreamMeta | null } {
   const i = full.indexOf(META_SEP);

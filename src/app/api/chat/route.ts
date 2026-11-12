@@ -6,6 +6,7 @@ import { chargeUpTo, textCost } from "@/lib/billing";
 import { errMessage, jsonError, textStream } from "@/lib/http";
 import { resolveModel } from "@/lib/models";
 import { META_SEP } from "@/lib/stream-meta";
+import { HUMAN_STYLE_CHAT } from "@/lib/human-style";
 import { suggestFollowUps } from "@/lib/suggest";
 import { renderTemplate } from "@/lib/prompt";
 
@@ -70,7 +71,7 @@ export async function POST(req: Request) {
 
     // Последние 30 сообщений как контекст
     const context: ChatMessage[] = [
-      { role: "system", content: SYSTEM },
+      { role: "system", content: `${SYSTEM}\n\n${HUMAN_STYLE_CHAT}` },
       ...history.slice(-30).map((m) => ({ role: m.role, content: m.content }) as ChatMessage),
       { role: "user", content: text },
     ];

@@ -52,7 +52,7 @@ export default function GeneratorForm({
       });
       await readTextStream(res, (full) => {
         const { text, meta } = splitMeta(full);
-        setOutput(text);
+        setOutput(meta?.text ?? text);
         setWaitingTips(!meta && full.includes(META_SEP));
         if (meta) setMeta(meta);
       });
