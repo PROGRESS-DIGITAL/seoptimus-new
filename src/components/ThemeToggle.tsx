@@ -18,9 +18,10 @@ export default function ThemeToggle({ initial }: { initial: "dark" | "light" }) 
       onClick={toggle}
       aria-label={light ? "Включить тёмную тему" : "Включить светлую тему"}
       title={light ? "Тёмная тема" : "Светлая тема"}
-      className="ml-2 grid h-10 w-10 cursor-pointer place-items-center rounded-[11px] border border-line-2 text-muted transition hover:bg-white/5 hover:text-fg"
+      className="ml-2 inline-flex h-10 cursor-pointer items-center gap-2 rounded-[11px] border border-line-2 px-3 text-sm text-fg transition hover:bg-white/5"
     >
       {light ? <Moon className="h-[18px] w-[18px]" /> : <Sun className="h-[18px] w-[18px]" />}
+      <span>{light ? "Тёмная тема" : "Светлая тема"}</span>
     </button>
   );
 }
