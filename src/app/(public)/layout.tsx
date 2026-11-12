@@ -8,7 +8,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <PublicHeader />
       <main className="relative">{children}</main>
       <footer className="mt-24 border-t border-line">
-        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 text-sm text-muted sm:grid-cols-[1.4fr_1fr_1fr]">
+        <div className="wrap grid gap-8 py-12 text-sm text-muted sm:grid-cols-[1.4fr_1fr_1fr]">
           <div>
             <Logo />
             <p className="mt-3 max-w-xs">Тексты и изображения нейросетью для SEO, маркетплейсов и соцсетей.</p>

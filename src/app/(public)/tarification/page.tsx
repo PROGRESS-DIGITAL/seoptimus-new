@@ -36,7 +36,7 @@ export default async function Pricing() {
   return (
     <div className="relative overflow-hidden">
       <Aurora subtle />
-      <div className="mx-auto max-w-6xl px-4 pt-10">
+      <div className="wrap pt-10">
         <div className="text-center">
           <h1 className="display text-4xl sm:text-5xl">
             Тарифы <span className="gradient-text">без путаницы</span>
