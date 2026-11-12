@@ -112,6 +112,28 @@ select option {
   scrollbar-color: #ffffff22 transparent;
 }
 
+/* Светлая тема админки: те же токены, другие значения. Белые полупрозрачные
+   подложки (bg-white/5 и т.п.) превращаются в тёмные через --color-white */
+.theme-light {
+  color-scheme: light;
+  --color-bg: #f5f5f8;
+  --color-surface: #ffffff;
+  --color-surface-2: #eeeef3;
+  --color-line: #0000001a;
+  --color-line-2: #0000002e;
+  --color-fg: #15151d;
+  --color-muted: #5b5b70;
+  --color-danger: #d42f2f;
+  --color-white: #000000;
+  scrollbar-color: #00000030 transparent;
+}
+.theme-light .text-accent {
+  color: #4a7d00;
+}
+.theme-light * {
+  scrollbar-color: #00000030 transparent;
+}
+
 @layer components {
   .btn {
     @apply inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-[14px] bg-accent px-7 py-3 text-base font-semibold text-accent-ink transition duration-200;
