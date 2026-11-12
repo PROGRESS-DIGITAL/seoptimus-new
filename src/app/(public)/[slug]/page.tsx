@@ -63,7 +63,7 @@ export default async function GeneratorPage({ params }: Props) {
       </div>
 
       {others.length > 0 && (
-        <div className="wrap pt-14">
+        <div className="mx-auto max-w-6xl px-4 pt-14">
           <h2 className="display text-2xl">Другие генераторы</h2>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {others.map((o) => (

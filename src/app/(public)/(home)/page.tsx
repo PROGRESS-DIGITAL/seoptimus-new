@@ -38,13 +38,13 @@ export default async function Home() {
       <section className="relative overflow-hidden">
         <Aurora />
         {/* Левая часть стоит на месте, когда окно генерации растёт вниз */}
-        <div className="wrap grid items-start gap-12 xl:gap-20 pb-16 pt-14 lg:grid-cols-[1fr_1.05fr] lg:pt-20">
+        <div className="mx-auto grid max-w-6xl items-start gap-12 px-4 pb-16 pt-14 lg:grid-cols-[1fr_1.05fr] lg:pt-20">
           <div className="animate-rise">
             <span className="chip">
               <Gift className="h-3.5 w-3.5 text-accent" />
               Бесплатно и без регистрации
             </span>
-            <h1 className="display mt-6 text-[2.08rem] leading-[1.08] sm:text-[3rem] 2xl:text-[3.6rem]">
+            <h1 className="display mt-6 text-[2.08rem] leading-[1.08] sm:text-[3rem]">
               Нейросеть <span className="gradient-text">пишет текст</span> онлайн&nbsp;— быстро и&nbsp;без&nbsp;VPN
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
@@ -98,7 +98,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <div className="wrap">
+      <div className="mx-auto max-w-6xl px-4">
         {/* Генераторы */}
         <section className="pt-24">
           <div className="flex flex-wrap items-end justify-between gap-4">
