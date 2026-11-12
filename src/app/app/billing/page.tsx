@@ -5,13 +5,10 @@ import PageHead from "@/components/PageHead";
 import PayButton from "@/components/PayButton";
 import PlanCards from "@/components/PlanCards";
 import { hasActivePlan, requireUser } from "@/lib/auth";
+import { PACKS } from "@/lib/economics";
 import { activePlans } from "@/lib/pricing";
 import { cancelAutopay } from "./actions";
 
-const PACKS = [
-  { credits: 500, price: 290 },
-  { credits: 2000, price: 990 },
-];
 
 const REASONS: Record<string, string> = {
   signup_bonus: "Бонус за регистрацию",

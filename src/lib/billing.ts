@@ -2,6 +2,8 @@ import "server-only";
 import { and, eq, gte, sql } from "drizzle-orm";
 import { db, schema } from "@/db";
 import type { Model } from "@/db/schema";
+import { creditsFor, imageCostRub, textCostRub, worstCreditRub } from "./economics";
+import { activePlans } from "./pricing";
 
 export class InsufficientCredits extends Error {
   constructor() {
@@ -53,10 +55,17 @@ export async function chargeUpTo(userId: number, amount: number, reason: string,
   });
 }
 
-export function textCost(model: Model, tokens: number) {
-  return Math.max(model.minCredits, Math.ceil((tokens / 1000) * model.creditPrice));
+/** Цена кредита в худшем случае (самый выгодный тариф или пакет), рублей */
+export async function creditRub() {
+  return worstCreditRub(await activePlans());
 }
 
-export function imageCost(model: Model, count = 1) {
-  return Math.max(model.minCredits, model.creditPrice * count);
+/** Кредиты за текст по фактическим токенам, наценка не ниже 10 к 1 */
+export async function textCost(model: Model, tokensIn: number, tokensOut: number) {
+  return creditsFor(textCostRub(model, tokensIn, tokensOut), await creditRub(), model.minCredits);
+}
+
+/** Кредиты за изображение (референсы тоже стоят денег) */
+export async function imageCost(model: Model, refs = 0) {
+  return creditsFor(imageCostRub(model, refs), await creditRub(), model.minCredits);
 }

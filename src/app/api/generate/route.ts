@@ -54,6 +54,8 @@ export async function POST(req: Request) {
         let result = await provider.streamChat(model, messages, write, { maxTokens, signal });
         let text = result.text;
         let tokens = result.tokens;
+        let tokensIn = result.tokensIn;
+        let tokensOut = result.tokensOut;
         // Длинный текст по частям: если вышло заметно короче нужного, просим дописать (до 2 раз)
         for (let i = 0; i < 2 && !isDemoMode() && target && target.min >= 800 && text.length < target.min * 0.85 && !signal.aborted; i++) {
           const need = target.min - text.length;
@@ -74,10 +76,12 @@ export async function POST(req: Request) {
           if (!more.text.trim()) break;
           text = `${text.trimEnd()}\n\n${more.text.trim()}`;
           tokens += more.tokens;
+          tokensIn += more.tokensIn;
+          tokensOut += more.tokensOut;
         }
         const clean = cleanAiTails(text);
-        result = { text: clean, tokens };
-        const credits = user ? await chargeUpTo(user.id, textCost(model, result.tokens), "generate", gen.slug) : 0;
+        result = { text: clean, tokens, tokensIn, tokensOut };
+        const credits = user ? await chargeUpTo(user.id, await textCost(model, result.tokensIn, result.tokensOut), "generate", gen.slug) : 0;
         const [row] = await db.insert(schema.generations).values({
           userId: user?.id ?? null,
           guestKey,

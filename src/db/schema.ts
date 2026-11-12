@@ -10,6 +10,7 @@ import {
   primaryKey,
   index,
   uniqueIndex,
+  doublePrecision,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable(
@@ -55,8 +56,12 @@ export const models = pgTable("models", {
   /** Имя модели у провайдера, например gpt-5-mini */
   providerModel: text("provider_model").notNull(),
   kind: text("kind", { enum: ["text", "image"] }).notNull(),
-  /** Текст: кредиты за 1000 токенов (вход + выход). Картинки: кредиты за изображение. */
-  creditPrice: integer("credit_price").notNull(),
+  /** Устарело: цена в кредитах теперь считается от costIn/costOut с наценкой (lib/economics) */
+  creditPrice: integer("credit_price").notNull().default(0),
+  /** Наши затраты у провайдера, USD. Текст: за 1 млн входных токенов. Картинки: за 1 референс */
+  costIn: doublePrecision("cost_in").notNull().default(0),
+  /** Текст: USD за 1 млн выходных токенов (включая «размышления»). Картинки: USD за 1 изображение */
+  costOut: doublePrecision("cost_out").notNull().default(0),
   /** Минимальное списание за запрос */
   minCredits: integer("min_credits").notNull().default(1),
   /** Доступна ли модель без подписки (бесплатным и гостям) */

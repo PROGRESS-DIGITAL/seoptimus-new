@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { addCredits } from "@/lib/billing";
+import { PACKS } from "@/lib/economics";
 import { detectPlan, parseBody, verifyHmac } from "@/lib/cloudpayments";
 import { normalizeEmail } from "@/lib/auth";
 
@@ -24,6 +25,36 @@ async function findOrCreateUser(accountId: string, email?: string) {
   return user;
 }
 
+/**
+ * Что оплачено, с проверкой суммы. Данные виджета приходят из браузера покупателя,
+ * поэтому тариф и пакет признаём, только если сумма не меньше цены.
+ * Старые подписки из Тильды узнаём по описанию и только для регулярных списаний (есть SubscriptionId).
+ */
+async function resolvePurchase(data: Record<string, string>) {
+  const amount = Number(data.Amount) || 0;
+  let widget: { plan?: unknown; credits?: unknown } = {};
+  try {
+    widget = JSON.parse(data.Data || "{}");
+  } catch {}
+  const slug = typeof widget.plan === "string" ? widget.plan : data.SubscriptionId ? detectPlan(data) : null;
+  if (slug) {
+    const [plan] = await db.select().from(schema.plans).where(eq(schema.plans.slug, slug));
+    if (!plan) return { error: "неизвестный тариф" } as const;
+    // Старые подписки могли стоить дешевле новых цен: для них порог мягче
+    const min = typeof widget.plan === "string" ? plan.priceRub : Math.round(plan.priceRub * 0.3);
+    if (amount < min) return { error: `сумма ${amount} меньше цены тарифа ${plan.priceRub}` } as const;
+    return { plan } as const;
+  }
+  const credits = Number(widget.credits) || 0;
+  if (credits) {
+    const pack = PACKS.find((p) => p.credits === credits);
+    if (!pack) return { error: "неизвестный пакет" } as const;
+    if (amount < pack.price) return { error: `сумма ${amount} меньше цены пакета ${pack.price}` } as const;
+    return { credits } as const;
+  }
+  return { error: "не удалось определить покупку" } as const;
+}
+
 export async function POST(req: Request, { params }: { params: Promise<{ event: string }> }) {
   const { event } = await params;
   const raw = await req.text();
@@ -33,11 +64,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ event: 
 
   switch (event) {
     case "check": {
-      // 0 — платёж можно проводить, 13 — отклонить (неизвестный тариф)
-      const plan = detectPlan(data);
-      if (plan) {
-        const [p] = await db.select().from(schema.plans).where(eq(schema.plans.slug, plan));
-        if (!p) return NextResponse.json({ code: 13 });
+      // 0 — платёж можно проводить, 13 — отклонить (неизвестный тариф или сумма меньше цены)
+      const purchase = await resolvePurchase(data);
+      if ("error" in purchase) {
+        console.warn("[cloudpayments] check rejected:", purchase.error, data.TransactionId);
+        return NextResponse.json({ code: 13 });
       }
       return ok();
     }
@@ -46,10 +77,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ event: 
       const [exists] = await db.select().from(schema.payments).where(eq(schema.payments.transactionId, txId));
       if (exists) return ok(); // повторное уведомление
       const user = await findOrCreateUser(data.AccountId || data.Email, data.Email);
-      const planSlug = detectPlan(data);
-      const [plan] = planSlug
-        ? await db.select().from(schema.plans).where(eq(schema.plans.slug, planSlug))
-        : [];
+      const purchase = await resolvePurchase(data);
+      const plan = "plan" in purchase ? purchase.plan : undefined;
+      if ("error" in purchase) console.warn("[cloudpayments] pay not credited:", purchase.error, txId);
       await db.insert(schema.payments).values({
         transactionId: txId,
         userId: user.id,
@@ -70,13 +100,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ event: 
           .set({ planSlug: plan.slug, planUntil: until })
           .where(eq(schema.users.id, user.id));
         await addCredits(user.id, plan.monthlyCredits, "plan_payment", txId);
-      } else {
-        // Разовая покупка пакета: Data.credits
-        let credits = 0;
-        try {
-          credits = Number(JSON.parse(data.Data || "{}").credits) || 0;
-        } catch {}
-        if (credits > 0) await addCredits(user.id, credits, "credits_pack", txId);
+      } else if ("credits" in purchase && purchase.credits) {
+        // Разовая покупка пакета
+        await addCredits(user.id, purchase.credits, "credits_pack", txId);
       }
       return ok();
     }

@@ -79,7 +79,7 @@ export async function POST(req: Request) {
     return textStream(
       async (write, signal) => {
         const result = await providerFor(model).streamChat(model, context, write, { signal });
-        const credits = await chargeUpTo(user.id, textCost(model, result.tokens), "chat", String(convId));
+        const credits = await chargeUpTo(user.id, await textCost(model, result.tokensIn, result.tokensOut), "chat", String(convId));
         await db.insert(schema.messages).values({
           conversationId: convId,
           role: "assistant",

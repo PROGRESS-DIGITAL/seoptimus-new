@@ -5,7 +5,7 @@ import type { Model } from "@/db/schema";
 import type { ImageFormat } from "@/lib/image-formats";
 
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
-export type StreamResult = { text: string; tokens: number };
+export type StreamResult = { text: string; tokens: number; tokensIn: number; tokensOut: number };
 export type ImageRef = { data: Buffer; name: string; type: string };
 export type ImageResult = { data: Buffer; ext: "png" | "svg" };
 
@@ -47,15 +47,27 @@ const openaiProvider: Provider = {
     );
     let text = "";
     let tokens = 0;
+    let tokensIn = 0;
+    let tokensOut = 0;
     for await (const chunk of stream) {
       const delta = chunk.choices[0]?.delta?.content;
       if (delta) {
         text += delta;
         onDelta(delta);
       }
-      if (chunk.usage) tokens = chunk.usage.total_tokens;
+      if (chunk.usage) {
+        tokens = chunk.usage.total_tokens;
+        tokensIn = chunk.usage.prompt_tokens;
+        tokensOut = chunk.usage.completion_tokens;
+      }
     }
-    return { text, tokens: tokens || Math.ceil(text.length / 3) };
+    if (!tokens) {
+      // Провайдер не прислал расход: оцениваем с запасом (≈2,5 знака на токен в русском)
+      tokensIn = Math.ceil(messages.reduce((n, m) => n + m.content.length, 0) / 2.5);
+      tokensOut = Math.ceil(text.length / 2.5) * 2;
+      tokens = tokensIn + tokensOut;
+    }
+    return { text, tokens, tokensIn, tokensOut };
   },
   async generateImage(model, prompt, format, refs = []) {
     // Новые модели (gpt-image-2 и старше) рисуют сразу в нужном формате.
@@ -68,9 +80,10 @@ const openaiProvider: Provider = {
           prompt,
           size,
           n: 1,
+          quality: "medium",
           image: await Promise.all(refs.map((r) => toFile(r.data, r.name, { type: r.type }))),
         })
-      : await openai().images.generate({ model: model.providerModel, prompt, size, n: 1 });
+      : await openai().images.generate({ model: model.providerModel, prompt, size, n: 1, quality: "medium" });
     const b64 = res.data?.[0]?.b64_json;
     if (!b64) throw new Error("Модель не вернула изображение");
     let data = Buffer.from(b64, "base64");
@@ -92,7 +105,9 @@ const demoProvider: Provider = {
       onDelta(word);
       await new Promise((r) => setTimeout(r, 12));
     }
-    return { text, tokens: Math.ceil((last.length + text.length) / 3) };
+    const tokensIn = Math.ceil(messages.reduce((n, m) => n + m.content.length, 0) / 2.5);
+    const tokensOut = Math.ceil(text.length / 2.5);
+    return { text, tokens: tokensIn + tokensOut, tokensIn, tokensOut };
   },
   async generateImage(_model, prompt, format, refs = []) {
     const safe = prompt.replace(/[<>&"]/g, "").slice(0, 60);

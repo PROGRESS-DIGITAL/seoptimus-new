@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     }
     const format = formatByRatio(form.get("ratio"));
     const model = await resolveModel("image", String(form.get("model") ?? "") || null, user);
-    const charged = imageCost(model);
+    const charged = await imageCost(model, refs.length);
     await chargeCredits(user.id, charged, "image", model.slug); // списываем заранее, при ошибке вернём
     paid = charged;
     const img = await providerFor(model).generateImage(model, prompt, format, refs);

@@ -12,6 +12,12 @@ const str = (f: FormData, k: string) => String(f.get(k) ?? "").trim();
 const num = (f: FormData, k: string) => Number(f.get(k) ?? 0) || 0;
 const bool = (f: FormData, k: string) => f.get(k) === "on";
 
+/** Дробное число: допускаем и точку, и запятую */
+const dec = (f: FormData, k: string) => {
+  const v = Number(String(f.get(k) ?? "").replace(",", "."));
+  return Number.isFinite(v) && v >= 0 ? v : 0;
+};
+
 export async function saveModel(f: FormData) {
   await requireAdmin();
   const slug = str(f, "slug");
@@ -21,7 +27,8 @@ export async function saveModel(f: FormData) {
     provider: str(f, "provider") || "openai",
     providerModel: str(f, "providerModel"),
     kind: (str(f, "kind") === "image" ? "image" : "text") as "text" | "image",
-    creditPrice: num(f, "creditPrice"),
+    costIn: dec(f, "costIn"),
+    costOut: dec(f, "costOut"),
     minCredits: num(f, "minCredits"),
     freeAccess: bool(f, "freeAccess"),
     enabled: bool(f, "enabled"),

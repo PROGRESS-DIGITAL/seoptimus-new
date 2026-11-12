@@ -20,11 +20,12 @@ const plans: (typeof schema.plans.$inferInsert)[] = [
 
 const models: (typeof schema.models.$inferInsert)[] = [
   { slug: "gpt-fast", title: "Быстрая", providerModel: "gpt-6-luna", kind: "text",
-    creditPrice: 1, minCredits: 1, freeAccess: true, isDefault: true, sort: 1 },
+    costIn: 0.1, costOut: 0.5, minCredits: 1, freeAccess: true, isDefault: true, sort: 1 },
   { slug: "gpt-flagship", title: "Умная", providerModel: "gpt-6.1-sol", kind: "text",
-    creditPrice: 5, minCredits: 3, freeAccess: false, sort: 2 },
+    costIn: 2, costOut: 10, minCredits: 3, freeAccess: false, sort: 2 },
   { slug: "gpt-image", title: "Изображения", providerModel: "gpt-image-2", kind: "image",
-    creditPrice: 20, minCredits: 20, freeAccess: false, sort: 10 },
+    // Картинка среднего качества: «выход» = USD за изображение, «вход» = USD за референс
+    costIn: 0.01, costOut: 0.03, minCredits: 20, freeAccess: false, sort: 10 },
 ];
 
 const f = (
