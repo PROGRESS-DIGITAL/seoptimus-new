@@ -45,11 +45,11 @@ export default async function Home() {
               Бесплатно и без регистрации
             </span>
             <h1 className="display mt-6 text-[2.6rem] leading-[1.05] sm:text-6xl">
-              Нейросеть <span className="gradient-text">пишет текст</span> онлайн бесплатно
+              Нейросеть <span className="gradient-text">пишет текст</span> онлайн&nbsp;— быстро и&nbsp;без&nbsp;VPN
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
-              Статьи, SEO-тексты, рерайт, посты и описания товаров за минуту. Работает в браузере, без VPN
-              и зарубежных карт.
+              Статьи, SEO-тексты, рерайт, посты и описания товаров за минуту. Работает в браузере,
+              оплата российской картой.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <a href="#try" className="btn btn-lg max-sm:w-full">
