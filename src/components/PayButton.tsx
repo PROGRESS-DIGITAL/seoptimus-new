@@ -35,7 +35,7 @@ export default function PayButton({
     <>
       <Script src="https://widget.cloudpayments.ru/bundles/cloudpayments.js" strategy="lazyOnload" />
       <button
-        className={primary ? "btn w-full" : "btn-ghost w-full"}
+        className={primary ? "btn btn-lg w-full" : "btn-ghost btn-lg w-full"}
         onClick={() => {
           if (!window.cp) return setMsg("Платёжный виджет ещё загружается, попробуйте через секунду");
           new window.cp.CloudPayments().pay(

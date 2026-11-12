@@ -18,11 +18,11 @@ export default function MobileChats({ chats }: { chats: { id: number; title: str
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Мои чаты"
-        className="grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-line-2 text-muted active:scale-95"
+        className="grid h-11 w-11 cursor-pointer place-items-center rounded-[12px] border border-line-2 text-muted active:scale-95"
       >
         <MessageSquareText className="h-[18px] w-[18px]" />
       </button>
-      <Link href="/app/chat" aria-label="Новый чат" className="btn !h-9 !w-9 !p-0">
+      <Link href="/app/chat" aria-label="Новый чат" className="btn !h-11 !min-h-11 !w-11 !p-0 !rounded-[12px]">
         <Plus className="h-4 w-4" />
       </Link>
       {open && (

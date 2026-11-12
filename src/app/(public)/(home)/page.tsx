@@ -51,10 +51,10 @@ export default async function Home() {
               и зарубежных карт.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href="#try" className="btn">
+              <a href="#try" className="btn btn-lg max-sm:w-full">
                 Попробовать сейчас <ArrowRight className="h-4 w-4" />
               </a>
-              <Link href="/tarification" className="btn-ghost">Тарифы</Link>
+              <Link href="/tarification" className="btn-ghost btn-lg max-sm:w-full">Тарифы</Link>
             </div>
             <dl className="mt-10 grid max-w-md grid-cols-3 gap-4 border-t border-line pt-6">
               {[
@@ -190,7 +190,7 @@ export default async function Home() {
             <PlanCards
               plans={plans}
               action={() => (
-                <Link href={user ? "/app/billing" : "/login"} className="btn w-full">Выбрать</Link>
+                <Link href={user ? "/app/billing" : "/login"} className="btn btn-lg w-full">Выбрать</Link>
               )}
             />
           </div>
@@ -203,7 +203,7 @@ export default async function Home() {
             <Zap className="mx-auto h-8 w-8 text-accent" />
             <h2 className="display mx-auto mt-5 max-w-2xl text-3xl sm:text-4xl">Первый текст будет готов через минуту</h2>
             <p className="mx-auto mt-4 max-w-lg text-muted">Регистрация по коду из письма, без паролей. 50 кредитов сразу на счёт.</p>
-            <Link href={cabinet} className="btn mt-8">
+            <Link href={cabinet} className="btn btn-lg mt-8">
               {user ? "Открыть кабинет" : "Начать бесплатно"} <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

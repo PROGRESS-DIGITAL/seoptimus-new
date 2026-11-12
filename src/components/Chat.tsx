@@ -167,7 +167,7 @@ export default function Chat({
           <button
             disabled={busy || !text.trim()}
             aria-label="Отправить"
-            className="btn !h-9 !w-9 !p-0"
+            className="btn !h-11 !min-h-11 !w-11 !p-0 !rounded-[12px]"
           >
             <ArrowUp className="h-4 w-4" />
           </button>

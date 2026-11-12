@@ -49,7 +49,7 @@ export default async function Pricing() {
           <PlanCards
             plans={plans}
             action={() => (
-              <Link href={user ? "/app/billing" : "/login"} className="btn w-full">Оформить</Link>
+              <Link href={user ? "/app/billing" : "/login"} className="btn btn-lg w-full">Оформить</Link>
             )}
           />
         </div>

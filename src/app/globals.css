@@ -103,7 +103,7 @@ select option {
 
 @layer components {
   .btn {
-    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-accent px-5 py-2.5 font-semibold text-accent-ink transition duration-200;
+    @apply inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-[14px] bg-accent px-7 py-3 text-base font-semibold text-accent-ink transition duration-200;
     box-shadow: 0 0 0 0 transparent;
   }
   .btn:hover:not(:disabled) {
@@ -117,10 +117,14 @@ select option {
     @apply cursor-not-allowed opacity-40;
   }
   .btn-ghost {
-    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-line-2 px-5 py-2.5 font-medium text-fg transition duration-200 hover:border-white/40 hover:bg-white/5;
+    @apply inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-[14px] border border-line-2 px-7 py-3 text-base font-medium text-fg transition duration-200 hover:border-white/40 hover:bg-white/5;
+  }
+  /* Кнопки: прямоугольные с мягким скруглением, как значок логотипа */
+  .btn-lg {
+    @apply min-h-14 rounded-2xl px-8 text-[17px];
   }
   .btn-sm {
-    @apply px-3.5 py-1.5 text-sm;
+    @apply min-h-10 rounded-[11px] px-4 py-2 text-sm;
   }
 
   .card {
