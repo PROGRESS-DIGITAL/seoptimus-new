@@ -44,7 +44,7 @@ export default async function Home() {
               <Gift className="h-3.5 w-3.5 text-accent" />
               Бесплатно и без регистрации
             </span>
-            <h1 className="display mt-6 text-[2.6rem] leading-[1.05] sm:text-6xl 2xl:text-7xl">
+            <h1 className="display mt-6 text-[2.08rem] leading-[1.08] sm:text-[3rem] 2xl:text-[3.6rem]">
               Нейросеть <span className="gradient-text">пишет текст</span> онлайн&nbsp;— быстро и&nbsp;без&nbsp;VPN
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted">
