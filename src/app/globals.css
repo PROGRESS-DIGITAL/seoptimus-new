@@ -168,13 +168,28 @@ select option {
     position: relative;
     isolation: isolate;
   }
+  /* Переливающаяся обводка: цвета бегут по кругу. Градиент задан на самих
+     псевдоэлементах, иначе анимация угла до него не доходит */
+  .glow::before,
+  .glow::after {
+    --glow-colors: conic-gradient(
+      from var(--glow-angle),
+      var(--color-accent),
+      #5ce1ff,
+      var(--color-violet),
+      var(--color-pink),
+      #ffb03d,
+      var(--color-accent)
+    );
+  }
   .glow::before {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg, var(--color-accent), var(--color-violet) 45%, var(--color-pink));
+    padding: 1.5px;
+    background: var(--glow-colors);
+    animation: glow-spin 6s linear infinite;
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
@@ -186,7 +201,8 @@ select option {
     position: absolute;
     inset: 8%;
     border-radius: inherit;
-    background: linear-gradient(135deg, var(--color-accent), var(--color-violet) 45%, var(--color-pink));
+    background: var(--glow-colors);
+    animation: glow-spin 6s linear infinite;
     filter: blur(60px);
     opacity: 0.28;
     z-index: -1;
@@ -217,6 +233,17 @@ select option {
       linear-gradient(to bottom, #ffffff0a 1px, transparent 1px);
     background-size: 56px 56px;
     mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 30%, transparent 75%);
+  }
+}
+
+@property --glow-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes glow-spin {
+  to {
+    --glow-angle: 360deg;
   }
 }
 
