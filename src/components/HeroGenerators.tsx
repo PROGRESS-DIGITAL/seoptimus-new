@@ -38,7 +38,7 @@ export default function HeroGenerators({
               data-tab={t.slug}
               onClick={() => setActive(t.slug)}
               className={
-                "min-h-10 flex-1 cursor-pointer whitespace-nowrap rounded-xl px-3.5 text-sm transition " +
+                "min-h-10 flex-1 cursor-pointer whitespace-nowrap rounded-xl px-2 text-[13px] transition sm:px-3.5 sm:text-sm " +
                 (on ? "bg-accent font-semibold text-accent-ink shadow-[0_0_24px_-8px] shadow-accent" : "text-muted hover:bg-white/5 hover:text-fg")
               }
             >
