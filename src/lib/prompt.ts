@@ -1,8 +1,13 @@
 import type { GeneratorField } from "@/db/schema";
 
+/** Подставляет поля в шаблон. Строки с незаполненными полями убираются, чтобы не сбивать нейросеть */
 export function renderTemplate(template: string, values: Record<string, string>) {
+  const EMPTY = "\u0000";
   return template
-    .replace(/\{\{(\w+)\}\}/g, (_, k) => (values[k] ?? "").trim() || "не указано")
+    .replace(/\{\{(\w+)\}\}/g, (_, k) => (values[k] ?? "").trim() || EMPTY)
+    .split("\n")
+    .filter((line) => !line.includes(EMPTY))
+    .join("\n")
     .trim();
 }
 
