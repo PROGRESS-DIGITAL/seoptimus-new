@@ -127,8 +127,36 @@ select option {
   --color-white: #000000;
   scrollbar-color: #00000030 transparent;
 }
-.theme-light .text-accent {
+/* Лаймовый текст на светлом фоне не читается: в светлой теме он темнее, кнопки остаются лаймовыми */
+.theme-light .text-accent,
+.theme-light .hover\:text-accent:hover,
+.theme-light .group:hover .group-hover\:text-accent {
   color: #4a7d00;
+}
+.theme-light .bg-accent.text-accent,
+.theme-light .group:hover .group-hover\:bg-accent {
+  color: var(--color-accent-ink);
+}
+/* Подписи поверх картинок остаются белыми */
+.theme-light .text-white,
+.theme-light .\!text-white {
+  color: #fff !important;
+}
+.theme-light .bg-black\/30 {
+  background-color: #00000006;
+}
+.theme-light .bg-black\/60.backdrop-blur-sm {
+  background-color: #0000004d;
+}
+.theme-light .gradient-text {
+  background-image: linear-gradient(100deg, #4a8a00 0%, #11a06a 45%, #0a8fb8 100%);
+}
+.theme-light .shimmer {
+  background: linear-gradient(90deg, #0000000a 25%, #0000001a 50%, #0000000a 75%);
+  background-size: 200% 100%;
+}
+.theme-light .auto-textarea::-webkit-resizer {
+  background: linear-gradient(135deg, transparent 0 55%, #00000040 55% 62%, transparent 62% 72%, #00000040 72% 79%, transparent 79%);
 }
 .theme-light * {
   scrollbar-color: #00000030 transparent;

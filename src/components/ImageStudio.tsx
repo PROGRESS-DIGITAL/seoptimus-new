@@ -242,7 +242,7 @@ export default function ImageStudio({ models, recent }: { models: ModelOption[];
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={img.url} alt="" className="w-full object-cover" style={{ aspectRatio: aspect(img.ratio) }} />
               <div className="absolute inset-x-2 bottom-2 flex justify-between opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100">
-                <span className="chip !bg-black/60 !py-0.5 !text-[11px] backdrop-blur">{img.ratio}</span>
+                <span className="chip !bg-black/60 !text-white !border-white/20 !py-0.5 !text-[11px] backdrop-blur">{img.ratio}</span>
                 <a
                   href={img.url}
                   download

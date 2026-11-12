@@ -10,6 +10,8 @@ import MobileChats from "@/components/MobileChats";
 import Logo from "@/components/Logo";
 import { hasActivePlan, requireUser } from "@/lib/auth";
 import { isDemoMode } from "@/lib/ai/gateway";
+import { getTheme } from "@/lib/theme";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export const dynamic = "force-dynamic";
 // Кабинет закрыт от поисковиков
@@ -24,9 +26,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .orderBy(desc(schema.conversations.updatedAt))
     .limit(30);
   const active = hasActivePlan(user);
+  const theme = await getTheme();
 
   return (
-    <div className="app-shell flex h-dvh bg-bg">
+    <div data-theme-root className={"app-shell flex h-dvh bg-bg text-fg" + (theme === "light" ? " theme-light" : "")}>
       <aside className="hidden w-[272px] shrink-0 flex-col border-r border-line bg-surface md:flex">
         <div className="px-5 py-4">
           <Logo href="/app/chat" />
@@ -48,6 +51,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               {c.title}
             </Link>
           ))}
+        </div>
+        <div className="px-3 pt-3">
+          <ThemeToggle initial={theme} className="w-full justify-center" />
         </div>
         <div className="m-3 rounded-2xl border border-line bg-white/[0.03] p-4">
           <div className="flex items-baseline justify-between">
@@ -78,6 +84,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <Link href="/app/billing" className="chip !py-1.5">
               <span className="font-semibold text-fg">{user.credits.toLocaleString("ru-RU")}</span> кр.
             </Link>
+            <ThemeToggle initial={theme} variant="icon" />
             <Suspense>
               <MobileChats chats={chats} />
             </Suspense>
