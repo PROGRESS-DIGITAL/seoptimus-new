@@ -1,0 +1,70 @@
+# Тестовый стенд SEOPTIMUS: Postgres + приложение + Caddy (HTTPS).
+# Секреты лежат в .env на сервере (шаблон: deploy/env.server.example), в git не попадают.
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: seoptimus
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d seoptimus"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Разовая задача при каждом деплое: схема БД и начальные данные (сид не затирает правки из админки)
+  migrate:
+    build:
+      context: .
+      target: tools
+    env_file: .env
+    environment:
+      # Внешняя БД: задайте DATABASE_URL в .env и запускайте с deploy/compose.external-db.yml
+      DATABASE_URL: ${DATABASE_URL:-postgres://app:${POSTGRES_PASSWORD}@db:5432/seoptimus}
+    command: sh -c "npx drizzle-kit push --force && npx tsx src/db/seed.ts"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    build:
+      context: .
+      target: runner
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Внешняя БД: задайте DATABASE_URL в .env и запускайте с deploy/compose.external-db.yml
+      DATABASE_URL: ${DATABASE_URL:-postgres://app:${POSTGRES_PASSWORD}@db:5432/seoptimus}
+    volumes:
+      - storage:/app/storage
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    expose:
+      - "3000"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:-:80}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  storage:
+  caddy_data:
+  caddy_config:

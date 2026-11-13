@@ -1,0 +1,6 @@
+# DOMAIN=test.seoptimus.ru — Caddy сам выпустит сертификат Let's Encrypt.
+# DOMAIN не задан — сайт открывается по http://IP-сервера.
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy app:3000
+}

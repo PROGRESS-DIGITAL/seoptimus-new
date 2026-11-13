@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Самодостаточная сборка для Docker (.next/standalone)
+  output: "standalone",
   async redirects() {
     // Старые служебные адреса Tilda
     return [
