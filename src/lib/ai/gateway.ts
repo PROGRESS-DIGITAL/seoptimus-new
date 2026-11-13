@@ -1,5 +1,6 @@
 import "server-only";
 import OpenAI, { toFile } from "openai";
+import { ProxyAgent, fetch as undiciFetch } from "undici";
 import sharp from "sharp";
 import type { Model } from "@/db/schema";
 import type { ImageFormat } from "@/lib/image-formats";
@@ -31,6 +32,13 @@ const openai = () =>
   (openaiClient ??= new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
     baseURL: process.env.OPENAI_BASE_URL || undefined,
+    // HTTP(S)-прокси для доступа к OpenAI из РФ: OPENAI_PROXY=http://user:pass@host:port
+    ...(process.env.OPENAI_PROXY
+      ? {
+          fetch: undiciFetch as unknown as typeof fetch,
+          fetchOptions: { dispatcher: new ProxyAgent(process.env.OPENAI_PROXY) },
+        }
+      : {}),
   }));
 
 const openaiProvider: Provider = {

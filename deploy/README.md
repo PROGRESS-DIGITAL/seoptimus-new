@@ -81,6 +81,7 @@ cd /opt/seoptimus && git pull && docker compose up -d --build
 ## Замечания
 
 - Без `OPENAI_API_KEY` стенд работает в демо-режиме. Из РФ-региона OpenAI напрямую недоступен:
-  нужен `OPENAI_BASE_URL` шлюза либо сервер в зарубежном регионе.
+  задайте `OPENAI_PROXY=http://user:pass@host:port` (HTTP(S)-прокси за рубежом), `OPENAI_BASE_URL` шлюза
+  либо поставьте сервер в зарубежном регионе. После правки `.env`: `docker compose up -d`.
 - Вебхуки CloudPayments указывать на `https://<домен>/api/cloudpayments/{check,pay,fail,recurrent}`.
 - Порты 80 и 443 должны быть открыты (в Timeweb по умолчанию открыты, если не включён firewall).
