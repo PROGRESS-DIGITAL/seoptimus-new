@@ -30,7 +30,7 @@ nano .env    # DOMAIN, POSTGRES_PASSWORD, SESSION_SECRET, APP_URL, ADMIN_EMAILS,
 docker compose up -d --build
 ```
 
-Репозиторий приватный, поэтому для `git clone` на сервере нужен deploy key
+Если репозиторий станет приватным, для `git clone` на сервере понадобится deploy key
 (GitHub → Settings → Deploy keys, ключ из `ssh-keygen -t ed25519` на сервере, клонировать по `git@github.com:...`).
 
 Пароли можно сгенерировать так: `openssl rand -hex 24`.
