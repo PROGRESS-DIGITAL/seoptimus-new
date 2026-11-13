@@ -226,7 +226,7 @@ export default function Chat({
                       </div>
                       {!(busy && i === msgs.length - 1) && (
                         <div className="mt-2.5 flex">
-                          <CopyButton text={m.content} />
+                          <CopyButton text={m.content} compact className="!h-8 !w-8 !justify-center !p-0" />
                         </div>
                       )}
                     </>
