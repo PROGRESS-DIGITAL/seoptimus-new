@@ -54,8 +54,12 @@ export default function Chat({
     if (window.matchMedia("(min-width: 768px)").matches) box.current?.focus();
   }, []);
 
+  // Лента едет вниз вместе с печатающимся ответом, пока человек сам не прокрутил её вверх
+  const scroller = useRef<HTMLDivElement>(null);
+  const stick = useRef(true);
   useEffect(() => {
-    end.current?.scrollIntoView({ behavior: "smooth" });
+    const el = scroller.current;
+    if (el && stick.current) el.scrollTop = el.scrollHeight;
   }, [msgs, suggestions, waitingTips]);
 
   // Один экземпляр на все чаты: сбрасываемся, только когда открыли другой чат.
@@ -90,6 +94,7 @@ export default function Chat({
     setError("");
     setBusy(true);
     setSuggestions([]);
+    stick.current = true; // своё сообщение всегда показываем внизу
     setMsgs((m) => [...m, { role: "user", content: message }, { role: "assistant", content: "" }]);
     try {
       const res = await fetch("/api/chat", {
@@ -204,7 +209,14 @@ export default function Chat({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div
+        ref={scroller}
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          stick.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+        }}
+        className="min-h-0 flex-1 overflow-y-auto"
+      >
         <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
           {msgs.map((m, i) =>
             m.role === "user" ? (
