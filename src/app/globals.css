@@ -151,6 +151,23 @@ select option {
 .theme-light .gradient-text {
   background-image: linear-gradient(100deg, #4a8a00 0%, #11a06a 45%, #0a8fb8 100%);
 }
+/* В светлой теме без цветного свечения: остаётся только переливающаяся обводка, фон чистый белый */
+.theme-light .glow::after {
+  display: none;
+}
+.theme-light .glow,
+.theme-light .glow .glass,
+.theme-light .glow > .bg-surface-2,
+.theme-light .glow.bg-surface-2 {
+  background-color: var(--color-surface);
+}
+.theme-light .glow {
+  box-shadow: 0 1px 2px #0000000a, 0 8px 24px -12px #00000014;
+}
+.theme-light [class*="blur-[90px]"],
+.theme-light [class*="blur-[120px]"] {
+  display: none;
+}
 .theme-light .shimmer {
   background: linear-gradient(90deg, #0000000a 25%, #0000001a 50%, #0000000a 75%);
   background-size: 200% 100%;
