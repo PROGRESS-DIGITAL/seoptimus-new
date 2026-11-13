@@ -55,6 +55,16 @@ docker compose up -d --build
 cd /opt/seoptimus && git pull && docker compose up -d --build
 ```
 
+### Автообновление раз в 10 минут
+
+```bash
+(crontab -l 2>/dev/null; echo "*/10 * * * * /opt/seoptimus/deploy/autodeploy.sh >> /var/log/seoptimus-deploy.log 2>&1") | crontab -
+```
+
+Скрипт смотрит на ветку, которая сейчас выбрана в `/opt/seoptimus` (`git checkout main` — следить за main),
+и пересобирает стенд только при новых коммитах. Локальные правки файлов в папке затираются, `.env` не трогается.
+Журнал: `tail -f /var/log/seoptimus-deploy.log`. Для варианта с внешней БД создайте файл `deploy/.use-external-db`.
+
 ## Полезное
 
 | Что | Команда |
