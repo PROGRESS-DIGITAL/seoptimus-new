@@ -35,6 +35,20 @@ docker compose up -d --build
 
 Пароли можно сгенерировать так: `openssl rand -hex 24`.
 
+## Вариант: своя PostgreSQL (managed-БД Timeweb)
+
+1. В панели БД создайте **отдельную пустую базу** (например `seoptimus_test`) и пользователя.
+   Не используйте базу с чужими таблицами: миграция (`drizzle-kit push --force`) приводит
+   схему к коду и может удалить таблицы, которых в коде нет.
+2. Если сервер и БД в одной приватной сети Timeweb, используйте внутренний адрес БД.
+3. В `.env` добавьте строку (вместо `POSTGRES_PASSWORD`):
+   `DATABASE_URL=postgres://user:password@host:5432/seoptimus_test?sslmode=require`
+   (`sslmode=require` нужен, если БД принимает только SSL-подключения; для внутреннего адреса обычно не нужен).
+4. Запуск без контейнера Postgres:
+   ```bash
+   docker compose -f docker-compose.yml -f deploy/compose.external-db.yml up -d --build
+   ```
+
 ## 3. Обновление
 
 ```bash

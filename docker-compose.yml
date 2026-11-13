@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: seoptimus
       POSTGRES_USER: app
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?задайте POSTGRES_PASSWORD в .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -23,7 +23,8 @@ services:
       target: tools
     env_file: .env
     environment:
-      DATABASE_URL: postgres://app:${POSTGRES_PASSWORD}@db:5432/seoptimus
+      # Внешняя БД: задайте DATABASE_URL в .env и запускайте с deploy/compose.external-db.yml
+      DATABASE_URL: ${DATABASE_URL:-postgres://app:${POSTGRES_PASSWORD}@db:5432/seoptimus}
     command: sh -c "npx drizzle-kit push --force && npx tsx src/db/seed.ts"
     depends_on:
       db:
@@ -37,7 +38,8 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DATABASE_URL: postgres://app:${POSTGRES_PASSWORD}@db:5432/seoptimus
+      # Внешняя БД: задайте DATABASE_URL в .env и запускайте с deploy/compose.external-db.yml
+      DATABASE_URL: ${DATABASE_URL:-postgres://app:${POSTGRES_PASSWORD}@db:5432/seoptimus}
     volumes:
       - storage:/app/storage
     depends_on:
