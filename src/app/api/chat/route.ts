@@ -7,6 +7,7 @@ import { errMessage, jsonError, textStream } from "@/lib/http";
 import { resolveModel } from "@/lib/models";
 import { META_SEP } from "@/lib/stream-meta";
 import { HUMAN_STYLE_CHAT } from "@/lib/human-style";
+import { dropPlaceholders, toPlainText } from "@/lib/plain-text";
 import { suggestFollowUps } from "@/lib/suggest";
 import { renderTemplate } from "@/lib/prompt";
 
@@ -79,6 +80,8 @@ export async function POST(req: Request) {
     return textStream(
       async (write, signal) => {
         const result = await providerFor(model).streamChat(model, context, write, { signal });
+        // В выдаче и в истории только чистый текст, без звёздочек и заготовок в скобках
+        result.text = dropPlaceholders(toPlainText(result.text, { keepBold: true }));
         const credits = await chargeUpTo(user.id, await textCost(model, result.tokensIn, result.tokensOut), "chat", String(convId));
         await db.insert(schema.messages).values({
           conversationId: convId,
@@ -94,7 +97,7 @@ export async function POST(req: Request) {
         if (result.text.trim()) {
           write(META_SEP); // клиент сразу покажет, что подбираются варианты
           const suggestions = await suggestFollowUps(text, result.text);
-          write(JSON.stringify({ suggestions }));
+          write(JSON.stringify({ suggestions, text: result.text }));
         }
       },
       req.signal,

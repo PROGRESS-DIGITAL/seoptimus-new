@@ -10,6 +10,8 @@ import Suggestions from "@/components/Suggestions";
 import type { GeneratorField } from "@/db/schema";
 import { readTextStream } from "@/lib/stream-client";
 import { META_SEP, splitMeta, type StreamMeta } from "@/lib/stream-meta";
+import { toPlainText } from "@/lib/plain-text";
+import RichText from "@/components/RichText";
 
 type ModelOption = { slug: string; title: string; locked: boolean };
 
@@ -171,10 +173,10 @@ export default function GeneratorForm({
       {output && (
         <div className="animate-rise rounded-2xl border border-line bg-black/30 p-5">
           <div className="mb-3 flex items-center justify-between text-xs text-muted">
-            <span>Результат · {output.length.toLocaleString("ru-RU")} знаков</span>
-            {!busy && <CopyButton text={output} />}
+            <span>Результат · {toPlainText(output).length.toLocaleString("ru-RU")} знаков</span>
+            {!busy && <CopyButton text={toPlainText(output)} />}
           </div>
-          <div className={"whitespace-pre-wrap leading-relaxed " + (busy && !waitingTips ? "caret" : "")}>{output}</div>
+          <div className={"whitespace-pre-wrap leading-relaxed " + (busy && !waitingTips ? "caret" : "")}><RichText text={output} /></div>
           {(waitingTips || (meta?.suggestions?.length ?? 0) > 0) && (
             <div className="mt-5 border-t border-line pt-4">
               <div className="mb-2.5 text-xs text-muted">

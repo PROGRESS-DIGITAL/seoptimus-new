@@ -8,6 +8,8 @@ import CopyButton from "@/components/CopyButton";
 import Suggestions from "@/components/Suggestions";
 import { readTextStream } from "@/lib/stream-client";
 import { META_SEP, splitMeta } from "@/lib/stream-meta";
+import { toPlainText } from "@/lib/plain-text";
+import RichText from "@/components/RichText";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type ModelOption = { slug: string; title: string; locked: boolean };
@@ -109,7 +111,7 @@ export default function Chat({
         // Текст закончился, сервер подбирает варианты продолжения
         setWaitingTips(full.length > 0 && !meta && full.includes(META_SEP));
         if (meta?.suggestions) tips = meta.suggestions;
-        setMsgs((m) => [...m.slice(0, -1), { role: "assistant", content: answer }]);
+        setMsgs((m) => [...m.slice(0, -1), { role: "assistant", content: meta?.text ?? answer }]);
       });
       setWaitingTips(false);
       setSuggestions(tips);
@@ -234,11 +236,11 @@ export default function Chat({
                   {m.content ? (
                     <>
                       <div className={"whitespace-pre-wrap leading-relaxed " + (busy && i === msgs.length - 1 && !waitingTips ? "caret" : "")}>
-                        {m.content}
+                        <RichText text={m.content} />
                       </div>
                       {!(busy && i === msgs.length - 1) && (
                         <div className="mt-2.5 flex">
-                          <CopyButton text={m.content} compact className="!h-8 !w-8 !justify-center !p-0" />
+                          <CopyButton text={toPlainText(m.content)} compact className="!h-8 !w-8 !justify-center !p-0" />
                         </div>
                       )}
                     </>
