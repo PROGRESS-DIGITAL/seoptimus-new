@@ -12,7 +12,7 @@ export default async function GeneratorPage({ params }: { params: Promise<{ slug
   if (!g) notFound();
   const Icon = generatorIcon(g.slug);
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 sm:p-10">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:p-10">
       <Link href="/app/generators" className="inline-flex items-center gap-1 text-sm text-muted hover:text-fg">
         <ChevronLeft className="h-4 w-4" /> Все генераторы
       </Link>

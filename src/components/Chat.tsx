@@ -174,7 +174,8 @@ export default function Chat({
           <button
             disabled={busy || !text.trim()}
             aria-label="Отправить"
-            className="btn !h-11 !min-h-11 !w-11 !p-0 !rounded-[12px]"
+            aria-busy={busy}
+            className={"btn !h-11 !min-h-11 !w-11 !p-0 !rounded-[12px] " + (busy ? "is-loading" : "")}
           >
             <ArrowUp className="h-4 w-4" />
           </button>
@@ -187,7 +188,7 @@ export default function Chat({
     return (
       <div className="relative grid h-full place-items-center overflow-hidden px-4">
         <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/3 h-72 w-[40rem] -translate-x-1/2 rounded-full bg-violet opacity-20 blur-[120px]" />
-        <div className="relative w-full max-w-2xl animate-rise">
+        <div className="relative w-full max-w-5xl animate-rise sm:px-6">
           <h1 className="display text-center text-3xl sm:text-4xl">
             Чем <span className="gradient-text">помочь</span> сегодня?
           </h1>
@@ -219,7 +220,7 @@ export default function Chat({
         }}
         className="min-h-0 flex-1 overflow-y-auto"
       >
-        <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
+        <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-10">
           {msgs.map((m, i) =>
             m.role === "user" ? (
               <div key={i} className="flex justify-end">
@@ -262,7 +263,7 @@ export default function Chat({
           <div ref={end} />
         </div>
       </div>
-      <div className="mx-auto w-full max-w-3xl px-3 pb-3 sm:px-4 sm:pb-4">
+      <div className="mx-auto w-full max-w-5xl px-3 pb-3 sm:px-10 sm:pb-4">
         {error && <div className="mb-2 rounded-xl border border-danger/30 bg-danger/10 p-3 text-sm text-danger">{error}</div>}
         {composer}
       </div>

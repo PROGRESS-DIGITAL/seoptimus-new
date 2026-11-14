@@ -210,6 +210,40 @@ select option {
     @apply mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-10 xl:px-14;
   }
 
+  /* Идёт генерация: оранжевые полосы под 45° бегут слева направо по жёлтой кнопке */
+  .btn.is-loading,
+  .btn.is-loading:disabled {
+    opacity: 1;
+    cursor: progress;
+    background-color: var(--color-accent);
+    background-image: repeating-linear-gradient(45deg, #ff9f1a 0 10px, transparent 10px 20px);
+    background-size: 28.28px 28.28px;
+    animation: stripes-run 0.7s linear infinite;
+    transform: none;
+  }
+  /* Заготовка картинки, пока она рисуется */
+  .gen-placeholder {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--color-line-2);
+    background-color: var(--color-surface-2);
+    background-image: repeating-linear-gradient(
+      45deg,
+      color-mix(in srgb, #ff9f1a 22%, transparent) 0 18px,
+      color-mix(in srgb, var(--color-accent) 12%, transparent) 18px 36px
+    );
+    background-size: 50.91px 50.91px;
+    animation: stripes-run 1.2s linear infinite;
+  }
+  .gen-placeholder::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, #ffffff1f 50%, transparent 70%);
+    background-size: 250% 100%;
+    animation: var(--animate-shimmer);
+  }
+
   .card {
     @apply rounded-2xl border border-line bg-surface;
   }
@@ -339,6 +373,14 @@ select option {
     background-size: 56px 56px;
     mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 30%, transparent 75%);
   }
+}
+
+@keyframes stripes-run {
+  to { background-position: 28.28px 0; }
+}
+.gen-placeholder { animation-name: stripes-run-lg; }
+@keyframes stripes-run-lg {
+  to { background-position: 50.91px 0; }
 }
 
 @property --glow-angle {

@@ -137,7 +137,7 @@ export default function GeneratorForm({
           </label>
         )}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 sm:col-span-2">
-          <button disabled={busy || (guest && left <= 0)} className="btn">
+          <button disabled={busy || (guest && left <= 0)} aria-busy={busy} className={"btn " + (busy ? "is-loading" : "")}>
             <Sparkles className={"h-4 w-4 " + (busy ? "animate-spin" : "")} />
             {busy ? "Пишу…" : "Сгенерировать"}
           </button>
@@ -163,10 +163,11 @@ export default function GeneratorForm({
       )}
 
       {busy && !output && (
-        <div className="grid gap-2.5 rounded-2xl border border-line bg-black/30 p-5">
-          <div className="shimmer h-3.5 w-11/12 rounded-full" />
-          <div className="shimmer h-3.5 w-full rounded-full" />
-          <div className="shimmer h-3.5 w-8/12 rounded-full" />
+        <div className="gen-placeholder grid min-h-28 place-items-center rounded-2xl p-5">
+          <div className="relative z-10 flex items-center gap-2 rounded-xl bg-bg/70 px-4 py-2.5 text-sm font-medium text-fg backdrop-blur">
+            <Sparkles className="h-4 w-4 animate-pulse text-accent" />
+            Пишу текст…
+          </div>
         </div>
       )}
 

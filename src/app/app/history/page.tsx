@@ -21,7 +21,7 @@ export default async function History() {
   ]);
   const titles = Object.fromEntries(gens.map((g) => [g.slug, g.title]));
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 sm:p-10">
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:p-10">
       <PageHead title="История" hint="Последние 100 генераций" />
       {rows.length === 0 && (
         <div className="rounded-3xl border border-dashed border-line-2 py-16 text-center text-muted">Пока пусто</div>
