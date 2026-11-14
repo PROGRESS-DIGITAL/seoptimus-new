@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Download, ImageIcon, ImagePlus, Lock, Wand2, X } from "lucide-react";
 import AutoTextarea from "@/components/AutoTextarea";
 import { IMAGE_FORMATS, MAX_REF_BYTES, MAX_REFS } from "@/lib/image-formats";
+import { friendlyError } from "@/lib/net-error";
 
 type ModelOption = { slug: string; title: string; locked: boolean; price: number };
 export type StudioImage = { url: string; ratio: string };
@@ -21,7 +22,15 @@ function RatioIcon({ ratio }: { ratio: string }) {
   return <span className="rounded-[3px] border border-current" style={{ width: w * k, height: h * k }} />;
 }
 
-export default function ImageStudio({ models, recent }: { models: ModelOption[]; recent: StudioImage[] }) {
+export default function ImageStudio({
+  models,
+  recent,
+  pendingJob,
+}: {
+  models: ModelOption[];
+  recent: StudioImage[];
+  pendingJob?: { id: string; ratio: string } | null;
+}) {
   const router = useRouter();
   const fileInput = useRef<HTMLInputElement>(null);
   const [prompt, setPrompt] = useState("");
@@ -67,6 +76,52 @@ export default function ImageStudio({ models, recent }: { models: ModelOption[];
     setRefs(next);
   }
 
+  /** Ждём фоновую генерацию: короткие сбои связи переживаем и спрашиваем снова */
+  async function waitJob(id: string) {
+    const started = Date.now();
+    let fails = 0;
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 2000));
+      let json: { status: string; url?: string; ratio?: string; error?: string };
+      try {
+        const res = await fetch(`/api/images/${id}`, { cache: "no-store" });
+        json = await res.json();
+        if (!res.ok) throw new Error(json.error || `Ошибка ${res.status}`);
+        fails = 0;
+      } catch (err) {
+        // Нет связи до 2 минут подряд: продолжаем ждать, картинка всё равно рисуется на сервере
+        if (++fails > 60) throw err;
+        continue;
+      }
+      if (json.status === "done" && json.url) return { url: json.url, ratio: json.ratio ?? ratio };
+      if (json.status === "error") throw new Error(json.error || "Не получилось нарисовать изображение");
+      if (Date.now() - started > 8 * 60 * 1000) throw new Error("Генерация идёт слишком долго. Загляните в историю чуть позже.");
+    }
+  }
+
+  async function follow(id: string) {
+    setBusy(true);
+    setError("");
+    try {
+      const img = await waitJob(id);
+      setImages((i) => [img, ...i]);
+      router.refresh();
+    } catch (err) {
+      setError(friendlyError(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Страницу обновили во время генерации: продолжаем ждать ту же картинку
+  useEffect(() => {
+    if (pendingJob) {
+      setRatio(pendingJob.ratio);
+      follow(pendingJob.id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -78,13 +133,17 @@ export default function ImageStudio({ models, recent }: { models: ModelOption[];
       body.set("model", model);
       refs.forEach((r) => body.append("refs", r.file));
       const res = await fetch("/api/images", { method: "POST", body });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error);
-      setImages((i) => [{ url: json.url, ratio: json.ratio }, ...i]);
-      router.refresh();
+      let json: { id?: string; error?: string } = {};
+      try {
+        json = await res.json();
+      } catch {
+        throw new Error(res.status === 413 ? "Файлы слишком большие для загрузки" : `Сервер не ответил (ошибка ${res.status}). Попробуйте ещё раз.`);
+      }
+      if (!res.ok || !json.id) throw new Error(json.error || `Ошибка ${res.status}`);
+      router.refresh(); // кредиты списались, обновим баланс
+      await follow(json.id);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
+      setError(friendlyError(err));
       setBusy(false);
     }
   }

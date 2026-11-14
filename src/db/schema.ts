@@ -188,6 +188,19 @@ export const payments = pgTable("payments", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/** Генерация картинки идёт в фоне: браузер получает id и опрашивает статус,
+ *  поэтому обрыв связи или таймаут прокси не теряют результат */
+export const imageJobs = pgTable("image_jobs", {
+  id: text("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  status: text("status", { enum: ["pending", "done", "error"] }).notNull().default("pending"),
+  ratio: text("ratio").notNull(),
+  url: text("url"),
+  error: text("error"),
+  credits: integer("credits").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /** Картинки для галереи на главной, загружаются в админке */
 export const galleryImages = pgTable("gallery_images", {
   id: serial("id").primaryKey(),
