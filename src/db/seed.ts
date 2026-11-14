@@ -173,6 +173,7 @@ const gallery = [
   { url: "/gallery/07.webp", ratio: "4:3", width: 1200, height: 900, caption: "Стоматологическая клиника" },
   { url: "/gallery/08.webp", ratio: "9:16", width: 675, height: 1200, caption: "Спикер на бизнес-конференции" },
   { url: "/gallery/09.webp", ratio: "16:9", width: 1200, height: 675, caption: "Прогулка на гидроцикле по морю" },
+  { url: "/gallery/10.webp", ratio: "4:3", width: 1200, height: 900, caption: "Котёнок спит в сказочной кроватке" },
 ];
 
 async function main() {
