@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db, schema } from "@/db";
 import { getUser } from "@/lib/auth";
 import { providerFor, type ImageRef } from "@/lib/ai/gateway";
-import { addCredits, chargeCredits, imageCost } from "@/lib/billing";
+import { addCredits, chargeCredits, imageCost, isUnlimited } from "@/lib/billing";
 import { errMessage, jsonError } from "@/lib/http";
 import { MAX_REF_BYTES, MAX_REFS, formatByRatio } from "@/lib/image-formats";
 import { resolveModel } from "@/lib/models";
@@ -32,7 +32,7 @@ export async function POST(req: Request) {
     }
     const format = formatByRatio(form.get("ratio"));
     const model = await resolveModel("image", String(form.get("model") ?? "") || null, user);
-    const charged = await imageCost(model, refs.length);
+    const charged = isUnlimited(user) ? 0 : await imageCost(model, refs.length);
     await chargeCredits(user.id, charged, "image", model.slug); // списываем заранее, при ошибке вернём
     paid = charged;
     const img = await providerFor(model).generateImage(model, prompt, format, refs);

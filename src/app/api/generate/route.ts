@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { getUser } from "@/lib/auth";
 import { providerFor } from "@/lib/ai/gateway";
-import { chargeUpTo, textCost } from "@/lib/billing";
+import { chargeUpTo, isUnlimited, textCost } from "@/lib/billing";
 import { consumeGuest } from "@/lib/guest";
 import { errMessage, jsonError, textStream } from "@/lib/http";
 import { resolveModel } from "@/lib/models";
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       guestKey = await consumeGuest();
     } else {
       model = await resolveModel("text", body.model || gen.defaultModel, user);
-      if (user.credits < model.minCredits)
+      if (!isUnlimited(user) && user.credits < model.minCredits)
         return jsonError("Недостаточно кредитов. Пополните баланс или выберите модель дешевле.", 402);
     }
 
@@ -88,7 +88,7 @@ export async function POST(req: Request) {
         }
         const clean = code ? text.trim() : cleanAiTails(text);
         result = { text: clean, tokens, tokensIn, tokensOut };
-        const credits = user ? await chargeUpTo(user.id, await textCost(model, result.tokensIn, result.tokensOut), "generate", gen.slug) : 0;
+        const credits = user && !isUnlimited(user) ? await chargeUpTo(user.id, await textCost(model, result.tokensIn, result.tokensOut), "generate", gen.slug) : 0;
         const [row] = await db.insert(schema.generations).values({
           userId: user?.id ?? null,
           guestKey,
