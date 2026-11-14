@@ -3,11 +3,11 @@
  * Работает и на сервере (сохраняем чистый текст), и в браузере (пока текст печатается).
  * Блоки кода в тройных кавычках не трогаем.
  */
-export function toPlainText(text: string, opts: { bullet?: string; keepBold?: boolean } = {}) {
+export function toPlainText(text: string, opts: { bullet?: string } = {}) {
   const bullet = opts.bullet ?? "— ";
   return text
     .split(/(```[\s\S]*?(?:```|$))/g)
-    .map((part, i) => (i % 2 === 1 ? part : opts.keepBold ? cleanKeepBold(part, bullet) : cleanPart(part, bullet)))
+    .map((part, i) => (i % 2 === 1 ? part : cleanPart(part, bullet)))
     .join("")
     .replace(/\n{3,}/g, "\n\n");
 }
@@ -35,29 +35,6 @@ function cleanPart(t: string, bullet: string) {
       // маркеры списков
       .replace(/^(\s*)[-*•]\s+(?=\S)/gm, `$1${bullet}`)
   );
-}
-
-/**
- * То же, но **жирный** остаётся (его показываем жирным), а заголовки «## Текст» становятся жирной строкой.
- * Так в базе хранится текст для выдачи: читается и как обычный текст, и с выделением.
- */
-function cleanKeepBold(t: string, bullet: string) {
-  const B = "\u0001";
-  return cleanPart(
-    t
-      .replace(/^#{1,6}[ \t]+(.+?)[ \t]*$/gm, (_, h: string) => `${B}${h.replace(/\*\*/g, "")}${B}`)
-      .replace(/\*{2,3}([^*\n]+?)\*{2,3}/g, `${B}$1${B}`)
-      .replace(/__([^_\n]+?)__/g, `${B}$1${B}`),
-    bullet,
-  ).replace(/\u0001/g, "**");
-}
-
-/** Кусочки для показа: жирное отдельно. Пока текст печатается, незакрытое ** уже показываем жирным */
-export function boldSegments(text: string): { text: string; bold: boolean }[] {
-  return text
-    .split("**")
-    .map((p, i) => ({ text: p, bold: i % 2 === 1 }))
-    .filter((p) => p.text);
 }
 
 /**
