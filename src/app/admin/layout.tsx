@@ -22,6 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <Link href="/admin/models" className={link}>Модели</Link>
           <Link href="/admin/generators" className={link}>Генераторы</Link>
           <Link href="/admin/plans" className={link}>Тарифы</Link>
+          <Link href="/admin/gallery" className={link}>Галерея</Link>
           <span className="ml-auto hidden text-muted sm:inline">{admin.email}</span>
           <ThemeToggle initial={theme} className="ml-2" />
           <Link href="/app" className="btn-ghost btn-sm ml-2">В кабинет</Link>

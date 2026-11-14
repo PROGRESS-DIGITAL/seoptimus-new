@@ -105,3 +105,34 @@ export async function adjustUser(f: FormData) {
     .where(eq(schema.users.id, id));
   revalidatePath("/admin/users");
 }
+
+const GALLERY_MAX = 15 * 1024 * 1024;
+
+export async function uploadGallery(f: FormData) {
+  await requireAdmin();
+  const { addGalleryImage } = await import("@/lib/gallery");
+  const files = f.getAll("files").filter((x): x is File => x instanceof File && x.size > 0);
+  if (!files.length) throw new Error("Выберите файлы");
+  for (const file of files) {
+    if (!file.type.startsWith("image/")) throw new Error(`${file.name}: это не картинка`);
+    if (file.size > GALLERY_MAX) throw new Error(`${file.name}: больше 15 МБ`);
+    await addGalleryImage(Buffer.from(await file.arrayBuffer()), str(f, "caption"));
+  }
+  revalidatePath("/admin/gallery");
+  revalidatePath("/");
+}
+
+export async function saveGalleryImage(f: FormData) {
+  await requireAdmin();
+  const id = num(f, "id");
+  if (f.get("delete")) {
+    await db.delete(schema.galleryImages).where(eq(schema.galleryImages.id, id));
+  } else {
+    await db
+      .update(schema.galleryImages)
+      .set({ caption: str(f, "caption"), sort: num(f, "sort"), enabled: bool(f, "enabled") })
+      .where(eq(schema.galleryImages.id, id));
+  }
+  revalidatePath("/admin/gallery");
+  revalidatePath("/");
+}
