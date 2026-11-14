@@ -2,6 +2,7 @@
  * Начальные данные: тарифы, модели, генераторы.
  * Запуск: npm run db:seed. Повторный запуск не затирает правки из админки.
  */
+import { sql } from "drizzle-orm";
 import { db, schema } from "./index";
 import type { GeneratorField } from "./schema";
 
@@ -161,10 +162,27 @@ const generators: (typeof schema.generators.$inferInsert)[] = [
   },
 ];
 
+/** Стартовое наполнение галереи на главной: файлы лежат в public/gallery */
+const gallery = [
+  { url: "/gallery/01.webp", ratio: "3:4", width: 900, height: 1200, caption: "Карточка товара для маркетплейса: гоночная машинка" },
+  { url: "/gallery/02.webp", ratio: "1:1", width: 1024, height: 1024, caption: "Красный спорткар в переулке" },
+  { url: "/gallery/03.webp", ratio: "1:1", width: 1024, height: 1024, caption: "Деловые переговоры в офисе" },
+  { url: "/gallery/04.webp", ratio: "9:16", width: 675, height: 1200, caption: "Кот в плаще и шляпе, сказочный персонаж" },
+  { url: "/gallery/05.webp", ratio: "3:4", width: 900, height: 1200, caption: "Детский стоматолог на приёме" },
+  { url: "/gallery/06.webp", ratio: "1:1", width: 1024, height: 1024, caption: "Девушка наносит макияж, реклама косметики" },
+  { url: "/gallery/07.webp", ratio: "4:3", width: 1200, height: 900, caption: "Стоматологическая клиника" },
+  { url: "/gallery/08.webp", ratio: "9:16", width: 675, height: 1200, caption: "Спикер на бизнес-конференции" },
+  { url: "/gallery/09.webp", ratio: "16:9", width: 1200, height: 675, caption: "Прогулка на гидроцикле по морю" },
+];
+
 async function main() {
   for (const p of plans) await db.insert(schema.plans).values(p).onConflictDoNothing();
   for (const m of models) await db.insert(schema.models).values(m).onConflictDoNothing();
   for (const g of generators) await db.insert(schema.generators).values(g).onConflictDoNothing();
+  // Только при самом первом запуске: если в галерею ещё ни разу ничего не добавляли.
+  // Удалённые в админке картинки после следующего деплоя не вернутся.
+  const [seq] = await db.execute<{ is_called: boolean }>(sql`select is_called from gallery_images_id_seq`);
+  if (!seq?.is_called) await db.insert(schema.galleryImages).values(gallery.map((g, i) => ({ ...g, sort: i })));
   console.log("Seed done");
   process.exit(0);
 }

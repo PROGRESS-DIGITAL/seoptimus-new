@@ -9,7 +9,7 @@ export default async function GalleryAdmin() {
         <h1 className="display text-xl">Галерея на главной</h1>
         <p className="mt-1 text-sm text-muted">
           Можно выбрать сразу несколько файлов. Формат (1:1, 9:16, 16:9, 3:4, 4:3) определится сам, картинки сожмутся
-          для быстрой загрузки. Пока картинок нет, раздел на главной скрыт.
+          для быстрой загрузки. Пока картинок нет, раздел на главной скрыт. Чтобы убрать картинку на время, снимите «показывать».
         </p>
         <form action={uploadGallery} className="mt-4 flex flex-wrap items-center gap-2">
           <input type="file" name="files" accept="image/*" multiple required className="input-sm max-w-xs" />

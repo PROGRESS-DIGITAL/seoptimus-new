@@ -17,7 +17,7 @@ export default function HomeGallery({ items }: { items: GalleryImage[] }) {
             className="block h-auto w-full transition duration-500 group-hover:scale-[1.03]"
           />
           {g.caption && (
-            <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 pt-10 text-xs leading-snug text-white opacity-0 transition group-hover:opacity-100 max-md:opacity-100">
+            <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-3 pt-10 text-xs leading-snug text-white opacity-0 transition group-hover:opacity-100">
               {g.caption}
             </figcaption>
           )}
