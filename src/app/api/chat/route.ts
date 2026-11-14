@@ -106,7 +106,7 @@ export async function POST(req: Request) {
           result.tokensOut += more.tokensOut;
         }
         // В выдаче и в истории только чистый текст, без звёздочек и заготовок в скобках
-        result.text = dropPlaceholders(toPlainText(result.text, { keepBold: true }));
+        result.text = dropPlaceholders(toPlainText(result.text));
         const credits = await chargeUpTo(user.id, await textCost(model, result.tokensIn, result.tokensOut), "chat", String(convId));
         await db.insert(schema.messages).values({
           conversationId: convId,
