@@ -12,6 +12,7 @@ import { readTextStream } from "@/lib/stream-client";
 import { META_SEP, splitMeta, type StreamMeta } from "@/lib/stream-meta";
 import { toPlainText } from "@/lib/plain-text";
 import RichText from "@/components/RichText";
+import { friendlyError } from "@/lib/net-error";
 
 type ModelOption = { slug: string; title: string; locked: boolean };
 
@@ -63,7 +64,7 @@ export default function GeneratorForm({
       if (guest) setLeft((n) => Math.max(0, n - 1));
       else router.refresh(); // обновить баланс в шапке
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(friendlyError(err));
     } finally {
       setWaitingTips(false);
       setBusy(false);

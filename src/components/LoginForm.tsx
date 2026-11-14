@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
+import { friendlyError } from "@/lib/net-error";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -23,7 +24,7 @@ export default function LoginForm() {
       if (!res.ok) throw new Error(json.error);
       return json;
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(friendlyError(e));
       return null;
     } finally {
       setBusy(false);

@@ -10,6 +10,7 @@ import { readTextStream } from "@/lib/stream-client";
 import { META_SEP, splitMeta } from "@/lib/stream-meta";
 import { toPlainText } from "@/lib/plain-text";
 import RichText from "@/components/RichText";
+import { friendlyError } from "@/lib/net-error";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type ModelOption = { slug: string; title: string; locked: boolean };
@@ -121,7 +122,7 @@ export default function Chat({
       }
       router.refresh();
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      setError(friendlyError(e));
       setMsgs((m) => m.slice(0, -1));
     } finally {
       setWaitingTips(false);
