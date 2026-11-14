@@ -30,6 +30,14 @@ export default function ImageStudio({ models, recent }: { models: ModelOption[];
   const [drag, setDrag] = useState(false);
   const [model, setModel] = useState(models.find((m) => !m.locked)?.slug ?? models[0]?.slug ?? "");
   const [busy, setBusy] = useState(false);
+  // Секундомер на заготовке картинки, чтобы было видно, что работа идёт
+  const [elapsed, setElapsed] = useState(0);
+  useEffect(() => {
+    if (!busy) return;
+    setElapsed(0);
+    const t = setInterval(() => setElapsed((s) => s + 1), 1000);
+    return () => clearInterval(t);
+  }, [busy]);
   const [error, setError] = useState("");
   const [images, setImages] = useState<StudioImage[]>(recent);
   const current = models.find((m) => m.slug === model);
@@ -208,7 +216,7 @@ export default function ImageStudio({ models, recent }: { models: ModelOption[];
                 </select>
               )}
             </div>
-            <button disabled={busy || !current || current.locked} className="btn max-sm:w-full">
+            <button disabled={busy || !current || current.locked} aria-busy={busy} className={"btn max-sm:w-full " + (busy ? "is-loading" : "")}>
               <Wand2 className={"h-4 w-4 " + (busy ? "animate-pulse" : "")} />
               {busy ? "Рисую…" : `${withRefs ? "Изменить" : "Создать"} · ${current?.price ?? 0} кр.`}
             </button>
@@ -236,7 +244,15 @@ export default function ImageStudio({ models, recent }: { models: ModelOption[];
         </div>
       ) : (
         <div className="columns-2 gap-3 sm:gap-4 md:columns-3 [&>*]:mb-3 sm:[&>*]:mb-4">
-          {busy && <div className="shimmer w-full break-inside-avoid rounded-2xl" style={{ aspectRatio: aspect(ratio) }} />}
+          {busy && (
+            <div className="gen-placeholder grid w-full break-inside-avoid place-items-center rounded-2xl" style={{ aspectRatio: aspect(ratio) }}>
+              <div className="relative z-10 grid justify-items-center gap-2 rounded-2xl bg-bg/70 px-4 py-3 text-center text-sm backdrop-blur">
+                <Wand2 className="h-5 w-5 animate-pulse text-accent" />
+                <span className="font-medium text-fg">Рисую изображение…</span>
+                <span className="text-xs text-muted">{elapsed} с · обычно до минуты</span>
+              </div>
+            </div>
+          )}
           {images.map((img) => (
             <div key={img.url} className="group relative break-inside-avoid overflow-hidden rounded-2xl border border-line">
               {/* eslint-disable-next-line @next/next/no-img-element */}
