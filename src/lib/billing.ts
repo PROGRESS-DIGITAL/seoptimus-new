@@ -11,6 +11,9 @@ export class InsufficientCredits extends Error {
   }
 }
 
+/** Админы (ADMIN_EMAILS) генерируют без ограничений: кредиты не проверяются и не списываются */
+export const isUnlimited = (user: { role: string } | null | undefined) => user?.role === "admin";
+
 export async function addCredits(userId: number, delta: number, reason: string, ref?: string) {
   await db.transaction(async (tx) => {
     await tx

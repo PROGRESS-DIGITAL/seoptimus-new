@@ -2,7 +2,7 @@ import { and, asc, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { getUser } from "@/lib/auth";
 import { providerFor, type ChatMessage } from "@/lib/ai/gateway";
-import { chargeUpTo, textCost } from "@/lib/billing";
+import { chargeUpTo, isUnlimited, textCost } from "@/lib/billing";
 import { errMessage, jsonError, textStream } from "@/lib/http";
 import { resolveModel } from "@/lib/models";
 import { META_SEP } from "@/lib/stream-meta";
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     const text = String(body.message ?? "").trim().slice(0, 30000);
     if (!text) return jsonError("Пустое сообщение");
     const model = await resolveModel("text", body.model, user);
-    if (user.credits < model.minCredits) return jsonError("Недостаточно кредитов", 402);
+    if (!isUnlimited(user) && user.credits < model.minCredits) return jsonError("Недостаточно кредитов", 402);
 
     let convId = Number(body.conversationId) || 0;
     if (convId) {
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
     return textStream(
       async (write, signal) => {
         const result = await providerFor(model).streamChat(model, context, write, { signal });
-        const credits = await chargeUpTo(user.id, await textCost(model, result.tokensIn, result.tokensOut), "chat", String(convId));
+        const credits = isUnlimited(user) ? 0 : await chargeUpTo(user.id, await textCost(model, result.tokensIn, result.tokensOut), "chat", String(convId));
         await db.insert(schema.messages).values({
           conversationId: convId,
           role: "assistant",
