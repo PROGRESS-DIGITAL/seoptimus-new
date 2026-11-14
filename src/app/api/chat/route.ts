@@ -1,19 +1,20 @@
 import { and, asc, eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { getUser } from "@/lib/auth";
-import { providerFor, type ChatMessage } from "@/lib/ai/gateway";
+import { isDemoMode, providerFor, type ChatMessage } from "@/lib/ai/gateway";
 import { chargeUpTo, textCost } from "@/lib/billing";
 import { errMessage, jsonError, textStream } from "@/lib/http";
 import { resolveModel } from "@/lib/models";
 import { META_SEP } from "@/lib/stream-meta";
-import { HUMAN_STYLE_CHAT } from "@/lib/human-style";
+import { HUMAN_STYLE_CHAT, lengthRule, lengthTarget } from "@/lib/human-style";
+import { dropPlaceholders, toPlainText } from "@/lib/plain-text";
 import { suggestFollowUps } from "@/lib/suggest";
 import { renderTemplate } from "@/lib/prompt";
 
 export const runtime = "nodejs";
 
 const SYSTEM =
-  "Ты полезный ассистент сервиса SEOPTIMUS. Отвечай на языке пользователя, по делу и структурно.";
+  "Ты ассистент сервиса SEOPTIMUS для текстов и контента. Отвечай на языке пользователя.";
 
 export async function POST(req: Request) {
   try {
@@ -69,16 +70,43 @@ export async function POST(req: Request) {
       .orderBy(asc(schema.messages.id));
     await db.insert(schema.messages).values({ conversationId: convId, role: "user", content: text });
 
+    const target = lengthTarget({ text });
     // Последние 30 сообщений как контекст
     const context: ChatMessage[] = [
       { role: "system", content: `${SYSTEM}\n\n${HUMAN_STYLE_CHAT}` },
       ...history.slice(-30).map((m) => ({ role: m.role, content: m.content }) as ChatMessage),
-      { role: "user", content: text },
+      // Если в запросе назван объём («статья на 3000 знаков»), напоминаем модели о нём
+      { role: "user", content: text + lengthRule(target, false) },
     ];
 
     return textStream(
       async (write, signal) => {
-        const result = await providerFor(model).streamChat(model, context, write, { signal });
+        const provider = providerFor(model);
+        const result = await provider.streamChat(model, context, write, { maxTokens: 16000, signal });
+        // Как в генераторах: если текст вышел заметно короче запрошенного, просим дописать (до 2 раз)
+        for (let i = 0; i < 2 && !isDemoMode() && target && target.min >= 800 && result.text.length < target.min * 0.85 && !signal.aborted; i++) {
+          write("\n\n");
+          const more = await provider.streamChat(
+            model,
+            [
+              ...context,
+              { role: "assistant", content: result.text },
+              {
+                role: "user",
+                content: `Текст получился короче нужного: ${result.text.length} знаков из ${target.min}. Продолжи с того места, где остановился, не повторяя уже написанное. Допиши ещё примерно ${target.min - result.text.length} знаков в том же стиле. Выдай только продолжение.`,
+              },
+            ],
+            write,
+            { maxTokens: 16000, signal },
+          );
+          if (!more.text.trim()) break;
+          result.text = `${result.text.trimEnd()}\n\n${more.text.trim()}`;
+          result.tokens += more.tokens;
+          result.tokensIn += more.tokensIn;
+          result.tokensOut += more.tokensOut;
+        }
+        // В выдаче и в истории только чистый текст, без звёздочек и заготовок в скобках
+        result.text = dropPlaceholders(toPlainText(result.text, { keepBold: true }));
         const credits = await chargeUpTo(user.id, await textCost(model, result.tokensIn, result.tokensOut), "chat", String(convId));
         await db.insert(schema.messages).values({
           conversationId: convId,
@@ -94,7 +122,7 @@ export async function POST(req: Request) {
         if (result.text.trim()) {
           write(META_SEP); // клиент сразу покажет, что подбираются варианты
           const suggestions = await suggestFollowUps(text, result.text);
-          write(JSON.stringify({ suggestions }));
+          write(JSON.stringify({ suggestions, text: result.text }));
         }
       },
       req.signal,

@@ -1,3 +1,5 @@
+import { toPlainText } from "@/lib/plain-text";
+import RichText from "@/components/RichText";
 import { desc, eq } from "drizzle-orm";
 import { ChevronDown, ImageIcon } from "lucide-react";
 import { db, schema } from "@/db";
@@ -50,9 +52,9 @@ export default async function History() {
                 <img src={r.output} alt="" className="mt-4 max-w-sm rounded-2xl" />
               ) : (
                 <div className="mt-4 border-t border-line pt-4">
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed">{r.output}</div>
+                  <div className="whitespace-pre-wrap text-sm leading-relaxed"><RichText text={r.output} /></div>
                   <div className="mt-3 flex gap-2">
-                    <CopyButton text={r.output} />
+                    <CopyButton text={toPlainText(r.output)} />
                   </div>
                 </div>
               )}
