@@ -17,8 +17,9 @@ export default async function AdminHome() {
       (select count(*) from generations where user_id is null and created_at > now() - interval '1 day')::int as guest24,
       (select count(*) from messages where role = 'assistant' and created_at > now() - interval '1 day')::int as chat24
   `);
-  const byModel = await db.execute<{ model: string; credits: number; tokens: number; n: number }>(sql`
-    select model_slug as model, sum(credits)::int as credits, sum(tokens)::int as tokens, count(*)::int as n
+  const byModel = await db.execute<{ model: string; credits: number; tokens: number; n: number; images: boolean }>(sql`
+    select model_slug as model, sum(credits)::int as credits, sum(tokens)::int as tokens, count(*)::int as n,
+      bool_and(kind = 'image') as images
     from generations where created_at > now() - interval '30 days' group by 1 order by 2 desc
   `);
   const cards: [string, number | string][] = [
@@ -44,12 +45,12 @@ export default async function AdminHome() {
         <h2 className="display text-lg">Генерации по моделям за 30 дней</h2>
         <table className="mt-3 w-full text-sm">
           <thead className="text-left text-muted">
-            <tr><th>Модель</th><th>Запросов</th><th>Токенов</th><th>Списано кредитов</th></tr>
+            <tr><th>Модель</th><th>Запросов</th><th>Токенов / картинок</th><th>Списано кредитов</th></tr>
           </thead>
           <tbody>
             {byModel.map((r) => (
               <tr key={r.model} className="border-t border-line">
-                <td className="py-1.5">{r.model}</td><td>{r.n}</td><td>{r.tokens}</td><td>{r.credits}</td>
+                <td className="py-1.5">{r.model}</td><td>{r.n}</td><td>{r.images ? `${r.n.toLocaleString("ru-RU")} шт.` : r.tokens.toLocaleString("ru-RU")}</td><td>{r.credits}</td>
               </tr>
             ))}
           </tbody>
