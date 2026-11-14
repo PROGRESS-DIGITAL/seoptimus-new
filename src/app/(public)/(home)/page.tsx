@@ -2,10 +2,12 @@ import Link from "next/link";
 import { ArrowRight, Gift, History, ImageIcon, MessagesSquare, Zap } from "lucide-react";
 import Aurora from "@/components/Aurora";
 import GeneratorCard from "@/components/GeneratorCard";
+import HomeGallery from "@/components/HomeGallery";
 import HeroGenerators, { type HeroTab } from "@/components/HeroGenerators";
 import PlanCards from "@/components/PlanCards";
 import { getUser } from "@/lib/auth";
 import { enabledGenerators } from "@/lib/generators";
+import { galleryPublic } from "@/lib/gallery";
 import { guestRemaining } from "@/lib/guest";
 import { activePlans } from "@/lib/pricing";
 
@@ -32,7 +34,7 @@ const STEPS = [
 ];
 
 export default async function Home() {
-  const [user, all, plans] = await Promise.all([getUser(), enabledGenerators(), activePlans()]);
+  const [user, all, plans, gallery] = await Promise.all([getUser(), enabledGenerators(), activePlans(), galleryPublic()]);
   const tabs: HeroTab[] = HERO_TABS.flatMap((t) => {
     const g = all.find((x) => x.slug === t.slug);
     return g ? [{ ...t, fields: g.fields }] : [];
@@ -167,6 +169,27 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        {/* Галерея: показываем, только когда в админке есть картинки */}
+        {gallery.length > 0 && (
+          <section id="gallery" className="scroll-mt-24 pt-24">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <div className="text-sm font-medium uppercase tracking-widest text-accent">Галерея</div>
+                <h2 className="display mt-3 text-3xl sm:text-4xl">Галерея картинок SEOPTIMUS</h2>
+              </div>
+              <p className="max-w-sm text-muted">
+                Всё это нарисовала нейросеть по короткому описанию: квадраты, сторис, обложки и посты для ленты.
+              </p>
+            </div>
+            <HomeGallery items={gallery} />
+            <div className="mt-8 text-center">
+              <Link href={user ? "/app/images" : "/login"} className="btn btn-lg max-sm:w-full">
+                Создать свою картинку <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </section>
+        )}
 
         {/* Как это работает */}
         <section className="pt-24">

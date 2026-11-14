@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Самодостаточная сборка для Docker (.next/standalone)
   output: "standalone",
+  // Загрузка картинок в галерею из админки
+  experimental: { serverActions: { bodySizeLimit: "30mb" } },
   async redirects() {
     // Старые служебные адреса Tilda
     return [

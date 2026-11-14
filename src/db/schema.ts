@@ -188,7 +188,21 @@ export const payments = pgTable("payments", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/** Картинки для галереи на главной, загружаются в админке */
+export const galleryImages = pgTable("gallery_images", {
+  id: serial("id").primaryKey(),
+  url: text("url").notNull(),
+  ratio: text("ratio").notNull(),
+  width: integer("width").notNull(),
+  height: integer("height").notNull(),
+  caption: text("caption").notNull().default(""),
+  sort: integer("sort").notNull().default(0),
+  enabled: boolean("enabled").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type Model = typeof models.$inferSelect;
 export type Generator = typeof generators.$inferSelect;
 export type Plan = typeof plans.$inferSelect;
+export type GalleryImage = typeof galleryImages.$inferSelect;
